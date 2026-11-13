@@ -157,6 +157,60 @@ function getSeat(seatId: number) {
   return seat;
 }
 
+describe("raising a Refund Request: Notifications", () => {
+  it("notifies every Platform Admin with who asked and for which course", () => {
+    const secondAdmin = db
+      .insert(schema.users)
+      .values({ name: "Ada Admin", email: "ada@example.com", role: UserRole.Admin })
+      .returning()
+      .get();
+    const purchase = buyForSelf(base.user.id);
+
+    const result = raiseRefundRequest(db, purchase.id, base.user.id, "Nope.", NOW);
+    if (!result.ok) throw new Error(result.error);
+
+    expect(result.notifications).toEqual([
+      {
+        kind: "new-refund-request",
+        recipients: [
+          { id: String(platformAdmin.id), name: "Pat Admin" },
+          { id: String(secondAdmin.id), name: "Ada Admin" },
+        ],
+        body: `New Refund Request from ${base.user.name} for \u201c${base.course.title}\u201d`,
+        url: `/admin/refunds?refund=${result.refundRequestId}`,
+      },
+    ]);
+  });
+
+  it("says Team Licence in the text for a Team Licence", () => {
+    const teamAdmin = addLearner("Priya");
+    const { purchase } = buySeats(teamAdmin.id, 3);
+
+    const result = raiseRefundRequest(db, purchase.id, teamAdmin.id, "Nope.", NOW);
+    if (!result.ok) throw new Error(result.error);
+
+    expect(result.notifications[0].body).toBe(
+      `New Refund Request from Priya for a Team Licence of \u201c${base.course.title}\u201d`
+    );
+  });
+
+  it("leaves out a Platform Admin who raised it on their own Purchase", () => {
+    const purchase = buyForSelf(platformAdmin.id);
+
+    const result = raiseRefundRequest(db, purchase.id, platformAdmin.id, "Nope.", NOW);
+    expect(result).toMatchObject({ ok: true, notifications: [] });
+  });
+
+  it("returns no Notifications for a rejected request", () => {
+    const purchase = buyForSelf(base.user.id);
+    const someoneElse = addLearner("Ben");
+
+    const result = raiseRefundRequest(db, purchase.id, someoneElse.id, "Nope.", NOW);
+    expect(result).toMatchObject({ ok: false });
+    expect(result).not.toHaveProperty("notifications");
+  });
+});
+
 describe("raising a Refund Request", () => {
   it("lets the buyer raise one on an Individual Purchase inside the window", () => {
     const purchase = buyForSelf(base.user.id);

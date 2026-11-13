@@ -18,6 +18,10 @@ import {
 } from "~/db/schema";
 import { formatPrice } from "~/lib/utils";
 import {
+  buildNewRefundRequest,
+  type Notification,
+} from "~/lib/notifications.server";
+import {
   REFUND_COMPLETION_LIMIT,
   REFUND_WATCH_LIMIT_SECONDS,
   REFUND_WINDOW_DAYS,
@@ -351,7 +355,13 @@ export function getRefundOffer(
 export type Email = { to: string; subject: string; body: string };
 
 export type RaiseResult =
-  | { ok: true; refundRequestId: number; kind: PurchaseKind; email: Email }
+  | {
+      ok: true;
+      refundRequestId: number;
+      kind: PurchaseKind;
+      email: Email;
+      notifications: Notification[];
+    }
   | Failure;
 
 export function raiseRefundRequest(
@@ -387,10 +397,18 @@ export function raiseRefundRequest(
     .returning()
     .get();
 
+  const kind = kindOf(getSeats(db, purchase.id));
+
   return {
     ok: true,
     refundRequestId: refundRequest.id,
-    kind: kindOf(getSeats(db, purchase.id)),
+    kind,
+    notifications: buildNewRefundRequest(db, {
+      refundRequestId: refundRequest.id,
+      buyer,
+      courseTitle: course.title,
+      isTeamLicence: kind === "team_licence",
+    }),
     email: {
       to: buyer.email,
       subject: `Refund requested — ${course.title}`,
