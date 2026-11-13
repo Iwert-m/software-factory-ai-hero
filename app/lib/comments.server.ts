@@ -1,6 +1,11 @@
 import { eq } from "drizzle-orm";
-import { comments, courses, lessons, modules } from "~/db/schema";
+import { comments, courses, lessons, modules, users } from "~/db/schema";
 import { MIN_COMMENT_LENGTH, MAX_COMMENT_LENGTH } from "~/lib/comments";
+import {
+  buildNewQuestion,
+  buildReply,
+  type Notification,
+} from "~/lib/notifications.server";
 import type { Db, Failure } from "~/lib/refunds.server";
 
 // ─── Comments ───
@@ -9,7 +14,9 @@ import type { Db, Failure } from "~/lib/refunds.server";
 
 type Comment = typeof comments.$inferSelect;
 
-export type PostCommentResult = { ok: true; comment: Comment } | Failure;
+export type PostCommentResult = 
+  | { ok: true; comment: Comment; notifications: Notification[] }
+  | Failure;
 
 export function postComment(
   db: Db,
@@ -31,7 +38,11 @@ export function postComment(
   }
 
   const course = db
-    .select({ id: courses.id })
+    .select({
+      slug: courses.slug,
+      instructorId: courses.instructorId,
+      lessonTitle: lessons.title,
+    })
     .from(lessons)
     .innerJoin(modules, eq(lessons.moduleId, modules.id))
     .innerJoin(courses, eq(modules.courseId, courses.id))
@@ -41,8 +52,9 @@ export function postComment(
     return { ok: false, status: 404, error: "Lesson not found" };
   }
 
+  let parent: Comment | undefined;
   if (parentId !== null) {
-    const parent = db
+    parent = db
       .select()
       .from(comments)
       .where(eq(comments.id, parentId))
@@ -71,5 +83,36 @@ export function postComment(
     .values({ userId, lessonId, parentId, body: trimmed })
     .returning()
     .get();
-  return { ok: true, comment };
+
+  const findUser = (id: number) =>
+    db
+      .select({ id: users.id, name: users.name })
+      .from(users)
+      .where(eq(users.id, id))
+      .get();
+  const author = findUser(userId);
+  const recipient = findUser(parent ? parent.userId : course.instructorId);
+  const context = {
+    lessonId,
+    lessonTitle: course.lessonTitle,
+    courseSlug: course.slug,
+  };
+  let notifications: Notification[] = [];
+  if (author && recipient) {
+    notifications = parent
+      ? buildReply({
+          ...context,
+          author,
+          questionId: parent.id,
+          questionAuthor: recipient,
+        })
+      : buildNewQuestion({
+          ...context,
+          author,
+          questionId: comment.id,
+          instructor: recipient,
+        });
+  }
+
+  return { ok: true, comment, notifications };
 }

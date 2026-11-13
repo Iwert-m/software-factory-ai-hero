@@ -10,6 +10,7 @@ import {
   type RenderedComment,
 } from "~/components/comment-thread";
 import { postComment } from "~/lib/comments.server";
+import { sendNotifications } from "~/lib/notifications.server";
 import { MIN_COMMENT_LENGTH, MAX_COMMENT_LENGTH } from "~/lib/comments";
 import { db } from "~/db";
 import {
@@ -878,6 +879,7 @@ export async function action({ params, request }: Route.ActionArgs) {
         if (!result.ok) {
           return { ok: false, error: result.error };
         }
+        await sendNotifications(result.notifications);
         return { ok: true };
       }
 
