@@ -33,3 +33,4 @@ reports/
 
 # Emails written locally instead of sent
 .outbox/
+.notifications/

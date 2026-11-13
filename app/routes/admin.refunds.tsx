@@ -83,11 +83,29 @@ export function meta() {
 export async function loader({ request, url }: Route.LoaderArgs) {
   await requirePlatformAdmin(request);
 
+  // A Notification links here with ?refund=<id>. Show the tab that holds that
+  // Refund Request, or say it is gone (ADR 0013) instead of failing.
+  const linked = z.coerce
+    .number()
+    .int()
+    .safeParse(url.searchParams.get("refund"));
+  const now = new Date();
+
+  if (linked.success) {
+    for (const candidate of Object.values(RefundStatus)) {
+      const refundRequests = listRefundRequestsForReview(db, candidate, now);
+      if (refundRequests.some((request) => request.id === linked.data)) {
+        return { status: candidate, refundRequests, missingRefundRequest: false };
+      }
+    }
+  }
+
   const status = refundFilterSchema.parse(url.searchParams.get("status"));
 
   return {
     status,
-    refundRequests: listRefundRequestsForReview(db, status, new Date()),
+    refundRequests: listRefundRequestsForReview(db, status, now),
+    missingRefundRequest: url.searchParams.has("refund"),
   };
 }
 
@@ -145,7 +163,7 @@ const FILTERS: { status: RefundStatus; label: string }[] = [
 ];
 
 export default function AdminRefunds({ loaderData }: Route.ComponentProps) {
-  const { status, refundRequests } = loaderData;
+  const { status, refundRequests, missingRefundRequest } = loaderData;
   const [, setSearchParams] = useSearchParams();
 
   return (
@@ -164,6 +182,12 @@ export default function AdminRefunds({ loaderData }: Route.ComponentProps) {
           Approve or decline what buyers have asked for, oldest first.
         </p>
       </div>
+
+      {missingRefundRequest && (
+        <p className="mb-6 rounded-md border p-3 text-sm text-muted-foreground">
+          That Refund Request is no longer available.
+        </p>
+      )}
 
       <div className="mb-6 flex gap-2">
         {FILTERS.map((filter) => (
