@@ -1,4 +1,14 @@
-import { Outlet } from "react-router";
+import { Outlet, useSearchParams } from "react-router";
+import { PrototypeSwitcher } from "~/components/prototype-switcher";
+import { NotificationsProtoProvider } from "~/components/notifications.prototype/store";
+import {
+  VARIANTS,
+  BellDropdownA,
+  TopBarB,
+  NavEntryC,
+  ArrivalBannerC,
+  ProtoControls,
+} from "~/components/notifications.prototype/variants";
 import type { Route } from "./+types/layout.app";
 import { Sidebar } from "~/components/sidebar";
 import { DevUI } from "~/components/dev-ui";
@@ -216,6 +226,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   };
 }
 
+let lastVariant = "A"; // PROTOTYPE (#6)
+
 export default function AppLayout({ loaderData }: Route.ComponentProps) {
   const {
     users,
@@ -227,24 +239,48 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
     isTeamAdmin: userIsTeamAdmin,
   } = loaderData;
 
+  // PROTOTYPE (#6): notification variants, switchable via ?variant=A|B|C
+  const [searchParams] = useSearchParams();
+  const variant = searchParams.get("variant") ?? lastVariant;
+  lastVariant = variant; // sticks across sidebar links that drop ?variant
+
+  const content = (
+    <>
+      {variant === "C" && <ArrivalBannerC />}
+      <Outlet />
+    </>
+  );
+
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar
-        currentUser={currentUser}
-        recentCourses={recentCourses}
-        isTeamAdmin={userIsTeamAdmin}
-      />
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
-      </main>
-      <DevUI
-        users={users}
-        currentUser={currentUser}
-        devCountry={devCountry}
-        countryTierInfo={countryTierInfo}
-        countries={countries}
-      />
-      <Toaster position="bottom-right" richColors closeButton />
-    </div>
+    <NotificationsProtoProvider
+      role={currentUser?.role ?? null}
+      isTeamAdmin={userIsTeamAdmin}
+    >
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar
+          currentUser={currentUser}
+          recentCourses={recentCourses}
+          isTeamAdmin={userIsTeamAdmin}
+          headerSlot={variant === "A" ? <BellDropdownA /> : undefined}
+          navSlot={variant === "C" ? <NavEntryC /> : undefined}
+        />
+        {variant === "B" ? (
+          <TopBarB>{content}</TopBarB>
+        ) : (
+          <main className="flex-1 overflow-y-auto">{content}</main>
+        )}
+        <DevUI
+          users={users}
+          currentUser={currentUser}
+          devCountry={devCountry}
+          countryTierInfo={countryTierInfo}
+          countries={countries}
+        />
+        <Toaster position="bottom-right" richColors closeButton />
+        <PrototypeSwitcher variants={VARIANTS} current={variant}>
+          <ProtoControls />
+        </PrototypeSwitcher>
+      </div>
+    </NotificationsProtoProvider>
   );
 }
