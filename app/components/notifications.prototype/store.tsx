@@ -102,7 +102,7 @@ export function NotificationsProtoProvider({
 }) {
   const key = `${role}-${isTeamAdmin}`;
   const [state, setState] = useState(() => ({ key, items: seed(role, isTeamAdmin) }));
-  const [allowMarkAll, setAllowMarkAll] = useState(false);
+  const [allowMarkAll, setAllowMarkAll] = useState(true);
   const [lastArrivalId, setLastArrivalId] = useState<string | null>(null);
   const [counter, setCounter] = useState(0);
 

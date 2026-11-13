@@ -1,18 +1,18 @@
 // PROTOTYPE — throwaway. Three structurally different answers to
 // "Where and how do Notifications show up, and how does marking Read work?"
 //   A  Sidebar bell → compact dropdown. Live arrival: badge bumps + pulses, no toast.
-//   B  Top bar bell → full-height slide-over drawer with Unread/All tabs. Live arrival: toast.
+//   B  Top bar bell → full-height slide-over drawer with Unread/All tabs. Live arrival: badge only.
+//      ← WINNER (no toast: too distracting; "Mark all as read" in).
 //   C  Sidebar nav entry "Notifications" → full page inbox. Live arrival: banner on the page you're on.
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate, useSearchParams } from "react-router";
-import { toast } from "sonner";
 import { Bell, Check, CheckCheck, Inbox, X } from "lucide-react";
 import { cn, formatRelativeTime } from "~/lib/utils";
 import { groupByDay, useNotificationsProto, type ProtoNotification } from "./store";
 
 export const VARIANTS = [
   { key: "A", name: "Sidebar bell + dropdown" },
-  { key: "B", name: "Top bar + drawer + toast" },
+  { key: "B", name: "Top bar + drawer (chosen)" },
   { key: "C", name: "Nav entry + full page" },
 ];
 
@@ -116,23 +116,11 @@ export function BellDropdownA() {
 // ───────────────────────── Variant B ─────────────────────────
 
 export function TopBarB({ children }: { children: React.ReactNode }) {
-  const { items, unreadCount, markRead, markAllRead, allowMarkAll, lastArrivalId } = useNotificationsProto();
+  const { items, unreadCount, markRead, markAllRead, allowMarkAll } = useNotificationsProto();
   const open = useOpenNotification();
   const [drawer, setDrawer] = useState(false);
   const [tab, setTab] = useState<"unread" | "all">("unread");
-  const seen = useRef<string | null>(lastArrivalId);
-
-  useEffect(() => {
-    if (!lastArrivalId || seen.current === lastArrivalId) return;
-    seen.current = lastArrivalId;
-    const n = items.find((x) => x.id === lastArrivalId);
-    if (!n) return;
-    toast(n.body, {
-      icon: <Bell className="size-4" />,
-      action: { label: "Open", onClick: () => open(n) },
-      duration: 8000,
-    });
-  }, [lastArrivalId]); // eslint-disable-line react-hooks/exhaustive-deps
+  // VERDICT: no toast on arrival; the unread badge on the bell is the only signal.
 
   const shown = tab === "unread" ? items.filter((n) => !n.read) : items;
 
