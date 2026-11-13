@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { courses, users, CourseStatus } from "~/db/schema";
 import type { Notification } from "~/lib/notifications.server";
-import type { Db, Failure } from "~/lib/refunds.server";
+import type { Db, Failure, Queryable } from "~/lib/refunds.server";
 
 // ─── Course status ───
 // A Platform Admin changing a course's status. Takes the database first, so
@@ -23,7 +23,7 @@ const STATUS_VERBS: Record<CourseStatus, string> = {
 
 /** The Instructor is told, unless they made the change themselves. */
 function buildCourseStatusChanged(
-  db: Db,
+  db: Queryable,
   course: typeof courses.$inferSelect,
   actorId: number
 ): Notification[] {
@@ -51,18 +51,20 @@ export function changeCourseStatus(
   status: CourseStatus,
   actorId: number
 ): ChangeCourseStatusResult {
-  const course = db
-    .update(courses)
-    .set({ status, updatedAt: new Date().toISOString() })
-    .where(eq(courses.id, courseId))
-    .returning()
-    .get();
-  if (!course) {
-    return { ok: false, status: 404, error: "Course not found" };
-  }
-  return {
-    ok: true,
-    course,
-    notifications: buildCourseStatusChanged(db, course, actorId),
-  };
+  return db.transaction((tx): ChangeCourseStatusResult => {
+    const course = tx
+      .update(courses)
+      .set({ status, updatedAt: new Date().toISOString() })
+      .where(eq(courses.id, courseId))
+      .returning()
+      .get();
+    if (!course) {
+      return { ok: false, status: 404, error: "Course not found" };
+    }
+    return {
+      ok: true,
+      course,
+      notifications: buildCourseStatusChanged(tx, course, actorId),
+    };
+  });
 }

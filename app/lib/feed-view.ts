@@ -20,25 +20,28 @@ export type FeedView<T extends FeedItem> = {
   badgeLabel: string | null;
 };
 
+function badgeLabelFor(unreadCount: number): string | null {
+  if (unreadCount === 0) return null;
+  return unreadCount > 9 ? "9+" : String(unreadCount);
+}
+
 export function buildFeedView<T extends FeedItem>(
   items: readonly T[],
   now: Date
 ): FeedView<T> {
   const oldestShown = now.getTime() - FEED_CUTOFF_DAYS * DAY_MS;
 
+  const insertedAt = (item: FeedItem) => new Date(item.inserted_at).getTime();
+
   const visible = items
-    .filter((item) => new Date(item.inserted_at).getTime() >= oldestShown)
-    .sort(
-      (a, b) =>
-        new Date(b.inserted_at).getTime() - new Date(a.inserted_at).getTime()
-    );
+    .filter((item) => insertedAt(item) >= oldestShown)
+    .sort((a, b) => insertedAt(b) - insertedAt(a));
   const unread = visible.filter((item) => item.read_at === null);
 
   return {
     visible,
     unread,
     unreadCount: unread.length,
-    badgeLabel:
-      unread.length === 0 ? null : unread.length > 9 ? "9+" : String(unread.length),
+    badgeLabel: badgeLabelFor(unread.length),
   };
 }

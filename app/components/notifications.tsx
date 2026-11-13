@@ -104,18 +104,18 @@ function BellAndDrawer() {
               </button>
             </div>
             <div className="flex items-center gap-1 border-b px-5 py-2">
-              {(["unread", "all"] as const).map((t) => (
+              {(["unread", "all"] as const).map((tabName) => (
                 <button
-                  key={t}
-                  onClick={() => setTab(t)}
+                  key={tabName}
+                  onClick={() => setTab(tabName)}
                   className={cn(
                     "rounded-full px-3 py-1 text-sm",
-                    tab === t
+                    tab === tabName
                       ? "bg-primary text-primary-foreground"
                       : "hover:bg-accent"
                   )}
                 >
-                  {t === "unread" ? `Unread (${view.unreadCount})` : "All"}
+                  {tabName === "unread" ? `Unread (${view.unreadCount})` : "All"}
                 </button>
               ))}
               {view.unreadCount > 0 && (
