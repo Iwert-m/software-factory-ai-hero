@@ -28,3 +28,17 @@ identifies the recipients inline (`{ id, name }`), so there is no user sync.
 - Template: body `{{ body }}`, link `{{ url }}` (the Purchase page,
   `/purchases/<id>`). The body says "approved", or "declined: “<note>”".
 - Data sent: `body`, `url`.
+
+## `course-status-changed`
+
+- Sent when a Platform Admin changes a course's status (draft, published or
+  archived), to the course's Instructor. Nobody is notified when the person
+  changing the status is that Instructor.
+- Channel: in-app feed only.
+- Template: body `{{ body }}` (for example "A Platform Admin unpublished
+  “React Patterns”"), link `{{ url }}` (the Instructor's course page,
+  `/instructor/<courseId>`). The title is the course's title at the moment of
+  the change.
+- Data sent: `body`, `url`.
+- The page can be opened after the course is gone or reassigned; it shows
+  "Course not found" or "Access denied" (ADR 0013).
