@@ -171,6 +171,37 @@ export function buildSeatClaimed(input: {
   ];
 }
 
+/** Tells the buyer of a Purchase how their Refund Request was decided. */
+export function buildRefundRequestDecided(input: {
+  purchaseId: number;
+  buyer: { id: number; name: string };
+  decidedById: number;
+  courseTitle: string;
+  isTeamLicence: boolean;
+  decision: "approved" | "declined";
+  note: string | null;
+}): Notification[] {
+  const recipients = everyoneBut([input.buyer], input.decidedById);
+  if (recipients.length === 0) return [];
+
+  const subject = input.isTeamLicence
+    ? `a Team Licence of “${input.courseTitle}”`
+    : `“${input.courseTitle}”`;
+  const outcome =
+    input.decision === "declined" && input.note
+      ? `declined: “${input.note}”`
+      : input.decision;
+
+  return [
+    {
+      kind: "refund-request-decided",
+      recipients,
+      body: `Your Refund Request for ${subject} was ${outcome}`,
+      url: `/purchases/${input.purchaseId}`,
+    },
+  ];
+}
+
 // ─── Senders ───
 
 export function knockSender(apiKey: string): NotificationSender {

@@ -37,6 +37,17 @@ identifies the recipients inline (`{ id, name }`), so there is no user sync.
 - Template: body `{{ body }}`, link `{{ url }}` (same Seats page link).
 - Data sent: `body` ("All 5 Seats on “CSS Mastery” are claimed"), `url`.
 
+## `refund-request-decided`
+
+- Sent when a Platform Admin approves or declines a Refund Request, to the
+  buyer of that Purchase (the Student for an Individual Purchase, the Team
+  Admin for a Team Licence). Not sent to a Platform Admin deciding on their own
+  Purchase, nor for a losing or failed decision.
+- Channel: in-app feed only.
+- Template: body `{{ body }}`, link `{{ url }}` (the Purchase page,
+  `/purchases/<id>`). The body says "approved", or "declined: “<note>”".
+- Data sent: `body`, `url`.
+
 ## `course-status-changed`
 
 - Sent when a Platform Admin changes a course's status (draft, published or

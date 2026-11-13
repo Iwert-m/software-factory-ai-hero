@@ -7,6 +7,7 @@ import {
   approveRefundRequest,
   checkRefundRequest,
   declineRefundRequest,
+  getPurchaseForBuyer,
   getRefundOffer,
   getSeatAvailability,
   listRefundRequestsForBuyer,
@@ -311,6 +312,95 @@ describe("the refund offer on the course page", () => {
   });
 });
 
+describe("deciding a Refund Request: Notifications", () => {
+  it("tells the buyer of an Individual Purchase it was approved, linking to the Purchase", () => {
+    const purchase = buyForSelf(base.user.id);
+    const id = raise(purchase.id, base.user.id);
+
+    const result = approveRefundRequest(db, id, platformAdmin.id, null, NOW);
+
+    if (!result.ok) throw new Error(result.error);
+    expect(result.notifications).toEqual([
+      {
+        kind: "refund-request-decided",
+        recipients: [{ id: String(base.user.id), name: base.user.name }],
+        body: `Your Refund Request for \u201c${base.course.title}\u201d was approved`,
+        url: `/purchases/${purchase.id}`,
+      },
+    ]);
+  });
+
+  it("puts the decline note in the text of a declined Notification", () => {
+    const purchase = buyForSelf(base.user.id);
+    const id = raise(purchase.id, base.user.id);
+
+    const result = declineRefundRequest(db, id, platformAdmin.id, " You finished it. ", NOW);
+
+    if (!result.ok) throw new Error(result.error);
+    expect(result.notifications).toEqual([
+      {
+        kind: "refund-request-decided",
+        recipients: [{ id: String(base.user.id), name: base.user.name }],
+        body: `Your Refund Request for \u201c${base.course.title}\u201d was declined: \u201cYou finished it.\u201d`,
+        url: `/purchases/${purchase.id}`,
+      },
+    ]);
+  });
+
+  it("tells the Team Admin of a Team Licence", () => {
+    const priya = addLearner("Priya");
+    const { purchase } = buySeats(priya.id, 2);
+    const id = raise(purchase.id, priya.id);
+
+    const approved = approveRefundRequest(db, id, platformAdmin.id, null, NOW);
+
+    if (!approved.ok) throw new Error(approved.error);
+    expect(approved.notifications).toEqual([
+      {
+        kind: "refund-request-decided",
+        recipients: [{ id: String(priya.id), name: "Priya" }],
+        body: `Your Refund Request for a Team Licence of \u201c${base.course.title}\u201d was approved`,
+        url: `/purchases/${purchase.id}`,
+      },
+    ]);
+  });
+
+  it("tells the Team Admin of a declined Team Licence, with the note", () => {
+    const priya = addLearner("Priya");
+    const { purchase } = buySeats(priya.id, 2);
+    const id = raise(purchase.id, priya.id);
+
+    const declined = declineRefundRequest(db, id, platformAdmin.id, "Seats in use.", NOW);
+
+    if (!declined.ok) throw new Error(declined.error);
+    expect(declined.notifications[0].body).toBe(
+      `Your Refund Request for a Team Licence of \u201c${base.course.title}\u201d was declined: \u201cSeats in use.\u201d`
+    );
+  });
+
+  it("returns none for the losing decision or a failed one", () => {
+    const purchase = buyForSelf(base.user.id);
+    const id = raise(purchase.id, base.user.id);
+    approveRefundRequest(db, id, platformAdmin.id, null, NOW);
+
+    const losing = declineRefundRequest(db, id, platformAdmin.id, "Too late.", NOW);
+    const failed = declineRefundRequest(db, id, platformAdmin.id, " ", NOW);
+
+    expect(losing).not.toHaveProperty("notifications");
+    expect(failed).not.toHaveProperty("notifications");
+  });
+
+  it("leaves out a Platform Admin deciding on their own Purchase", () => {
+    const purchase = buyForSelf(platformAdmin.id);
+    const id = raise(purchase.id, platformAdmin.id);
+
+    expect(approveRefundRequest(db, id, platformAdmin.id, null, NOW)).toMatchObject({
+      ok: true,
+      notifications: [],
+    });
+  });
+});
+
 describe("approving a Refund Request", () => {
   it("removes the buyer's Enrollment but keeps their progress", () => {
     const purchase = buyForSelf(base.user.id);
@@ -554,5 +644,27 @@ describe("listing Refund Requests", () => {
       { seatCount: 2, claimedSeatCount: 1, canRequestRefund: false },
       { seatCount: 2, claimedSeatCount: 0, canRequestRefund: true },
     ]);
+  });
+});
+
+describe("the Purchase page", () => {
+  it("shows the buyer their Purchase with its latest Refund Request", () => {
+    const purchase = buyForSelf(base.user.id);
+    const id = raise(purchase.id, base.user.id);
+    declineRefundRequest(db, id, platformAdmin.id, "You finished it.", NOW);
+
+    expect(getPurchaseForBuyer(db, purchase.id, base.user.id)).toMatchObject({
+      courseTitle: base.course.title,
+      amountPaid: 7900,
+      kind: "individual_purchase",
+      latestRefundRequest: { status: "declined", decisionNote: "You finished it." },
+    });
+  });
+
+  it("finds nothing for a missing Purchase or someone else's", () => {
+    const purchase = buyForSelf(base.user.id);
+
+    expect(getPurchaseForBuyer(db, purchase.id, addLearner("Ben").id)).toBeNull();
+    expect(getPurchaseForBuyer(db, 9999, base.user.id)).toBeNull();
   });
 });
