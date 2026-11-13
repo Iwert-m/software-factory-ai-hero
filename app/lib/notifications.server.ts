@@ -83,6 +83,43 @@ export function buildNewRefundRequest(
   ];
 }
 
+/**
+ * The last Unclaimed Seat gets `all-seats-claimed` in place of `seat-claimed`.
+ * Returns a list: empty when the buyer claimed the Seat themselves.
+ */
+export function buildSeatClaimed(input: {
+  purchaseId: number;
+  teamAdmin: { id: number; name: string };
+  claimer: { id: number; name: string };
+  courseTitle: string;
+  claimedCount: number;
+  seatCount: number;
+}): Notification[] {
+  const recipients = everyoneBut([input.teamAdmin], input.claimer.id);
+  if (recipients.length === 0) return [];
+
+  const url = `/team?licence=${input.purchaseId}`;
+  if (input.claimedCount >= input.seatCount) {
+    return [
+      {
+        kind: "all-seats-claimed",
+        recipients,
+        body: `All ${input.seatCount} Seats on “${input.courseTitle}” are claimed`,
+        url,
+      },
+    ];
+  }
+
+  return [
+    {
+      kind: "seat-claimed",
+      recipients,
+      body: `${input.claimer.name} claimed a Seat on “${input.courseTitle}” (${input.claimedCount} of ${input.seatCount} claimed)`,
+      url,
+    },
+  ];
+}
+
 // ─── Senders ───
 
 export function knockSender(apiKey: string): NotificationSender {

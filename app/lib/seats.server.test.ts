@@ -134,3 +134,74 @@ describe("claimSeat", () => {
     expect(seatRow()?.redeemedByUserId).toBeNull();
   });
 });
+
+describe("claimSeat Notifications", () => {
+  function addSeats(count: number) {
+    for (let i = 2; i <= count + 1; i++) {
+      db.insert(schema.coupons)
+        .values({
+          teamId: seat.teamId,
+          courseId: base.course.id,
+          code: `SEAT-${i}`,
+          purchaseId: purchase.id,
+        })
+        .run();
+    }
+  }
+
+  it("tells the Team Admin who claimed and how many Seats are claimed", () => {
+    addSeats(2);
+    const robin = addLearner("Robin");
+    const result = claimSeat(db, "SEAT-1", robin.id, "NL");
+    if (!result.ok) throw new Error(result.error);
+    expect(result.notifications).toEqual([
+      {
+        kind: "seat-claimed",
+        recipients: [{ id: String(base.user.id), name: base.user.name }],
+        body: `Robin claimed a Seat on “${base.course.title}” (1 of 3 claimed)`,
+        url: `/team?licence=${purchase.id}`,
+      },
+    ]);
+  });
+
+  it("counts earlier claims", () => {
+    addSeats(2);
+    claimSeat(db, "SEAT-1", addLearner("Robin").id, "NL");
+    const result = claimSeat(db, "SEAT-2", addLearner("Sam").id, "NL");
+    if (!result.ok) throw new Error(result.error);
+    expect(result.notifications[0]?.body).toContain("(2 of 3 claimed)");
+  });
+
+  it("sends only all-seats-claimed for the last Seat", () => {
+    addSeats(1);
+    claimSeat(db, "SEAT-1", addLearner("Robin").id, "NL");
+    const result = claimSeat(db, "SEAT-2", addLearner("Sam").id, "NL");
+    if (!result.ok) throw new Error(result.error);
+    expect(result.notifications).toEqual([
+      {
+        kind: "all-seats-claimed",
+        recipients: [{ id: String(base.user.id), name: base.user.name }],
+        body: `All 2 Seats on “${base.course.title}” are claimed`,
+        url: `/team?licence=${purchase.id}`,
+      },
+    ]);
+  });
+
+  it("does not tell the Team Admin about claiming their own Seat", () => {
+    addSeats(1);
+    const admin = addLearner("Admin");
+    db.update(schema.purchases)
+      .set({ userId: admin.id })
+      .where(eq(schema.purchases.id, purchase.id))
+      .run();
+    const result = claimSeat(db, "SEAT-1", admin.id, "NL");
+    if (!result.ok) throw new Error(result.error);
+    expect(result.notifications).toEqual([]);
+  });
+
+  it("returns no Notification for a refused claim", () => {
+    const result = claimSeat(db, "SEAT-1", addLearner("Robin").id, "DE");
+    expect(result).not.toHaveProperty("notifications");
+    expect(result.ok).toBe(false);
+  });
+});

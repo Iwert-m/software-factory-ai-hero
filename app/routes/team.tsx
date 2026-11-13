@@ -19,6 +19,7 @@ import {
   RefundStatus,
 } from "~/db/schema";
 import { eq, and } from "drizzle-orm";
+import { z } from "zod";
 import {
   getSeatAvailability,
   listTeamLicences,
@@ -161,7 +162,25 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const teamLicences = listTeamLicences(db, currentUserId, new Date());
 
-  return { courseStats, couponRows, teamLicences };
+  // A Notification links here with ?licence=<purchase id>. Say so when that
+  // Team Licence is missing or refunded (ADR 0013) instead of failing.
+  const linkedId = z.coerce
+    .number()
+    .int()
+    .safeParse(new URL(request.url).searchParams.get("licence"));
+  let linkedLicenceUnavailable = false;
+  if (linkedId.success) {
+    const seats = db
+      .select()
+      .from(coupons)
+      .where(eq(coupons.purchaseId, linkedId.data))
+      .all();
+    const isMine = teamLicences.some((l) => l.purchaseId === linkedId.data);
+    linkedLicenceUnavailable =
+      !isMine || seats.some((seat) => seat.refundedAt !== null);
+  }
+
+  return { courseStats, couponRows, teamLicences, linkedLicenceUnavailable };
 }
 
 function CopyButton({ code }: { code: string }) {
@@ -197,7 +216,8 @@ function CopyButton({ code }: { code: string }) {
 }
 
 export default function Team({ loaderData }: Route.ComponentProps) {
-  const { courseStats, couponRows, teamLicences } = loaderData;
+  const { courseStats, couponRows, teamLicences, linkedLicenceUnavailable } =
+    loaderData;
   const [courseFilter, setCourseFilter] = useState<number | "all">("all");
 
   const filteredCoupons =
@@ -221,6 +241,12 @@ export default function Team({ loaderData }: Route.ComponentProps) {
           Manage your team&apos;s course seats and coupon codes
         </p>
       </div>
+
+      {linkedLicenceUnavailable && (
+        <p className="mb-8 rounded-md bg-amber-50 p-4 text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          That Team Licence is no longer available. It may have been refunded.
+        </p>
+      )}
 
       {/* Per-course stats */}
       {courseStats.length > 0 && (

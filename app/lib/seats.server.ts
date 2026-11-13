@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import { coupons, enrollments, purchases } from "~/db/schema";
+import { coupons, courses, enrollments, purchases, users } from "~/db/schema";
+import { buildSeatClaimed, type Notification } from "~/lib/notifications.server";
 import { getSeatAvailability, type Db, type Failure } from "~/lib/refunds.server";
 
 // ─── Seats ───
@@ -12,7 +13,11 @@ export const SEAT_REFUNDED =
   "This seat is no longer available. Ask the person who shared it with you.";
 
 export type ClaimSeatResult =
-  | { ok: true; enrollment: typeof enrollments.$inferSelect }
+  | {
+      ok: true;
+      enrollment: typeof enrollments.$inferSelect;
+      notifications: Notification[];
+    }
   | Failure;
 
 export function claimSeat(
@@ -85,5 +90,50 @@ export function claimSeat(
     .returning()
     .get();
 
-  return { ok: true, enrollment };
+  return {
+    ok: true,
+    enrollment,
+    notifications: notifyTeamAdmin(db, seat.purchaseId, userId),
+  };
+}
+
+function notifyTeamAdmin(
+  db: Db,
+  purchaseId: number,
+  claimerId: number
+): Notification[] {
+  const purchase = db
+    .select()
+    .from(purchases)
+    .where(eq(purchases.id, purchaseId))
+    .get();
+  if (!purchase) return [];
+
+  const teamAdmin = db
+    .select()
+    .from(users)
+    .where(eq(users.id, purchase.userId))
+    .get();
+  const claimer = db.select().from(users).where(eq(users.id, claimerId)).get();
+  const course = db
+    .select()
+    .from(courses)
+    .where(eq(courses.id, purchase.courseId))
+    .get();
+  if (!teamAdmin || !claimer || !course) return [];
+
+  const seats = db
+    .select()
+    .from(coupons)
+    .where(eq(coupons.purchaseId, purchaseId))
+    .all();
+
+  return buildSeatClaimed({
+    purchaseId,
+    teamAdmin,
+    claimer,
+    courseTitle: course.title,
+    claimedCount: seats.filter((s) => s.redeemedByUserId !== null).length,
+    seatCount: seats.length,
+  });
 }
