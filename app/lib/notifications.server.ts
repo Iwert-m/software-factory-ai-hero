@@ -83,6 +83,57 @@ export function buildNewRefundRequest(
   ];
 }
 
+// ─── Questions and Replies ───
+
+type CommentNotificationInput = {
+  author: { id: number; name: string };
+  lessonId: number;
+  lessonTitle: string;
+  courseSlug: string;
+  /** The Question: the new Comment itself, or the one a Reply is under. */
+  questionId: number;
+};
+
+function questionUrl(input: CommentNotificationInput): string {
+  return `/courses/${input.courseSlug}/lessons/${input.lessonId}#question-${input.questionId}`;
+}
+
+/** Tells the course's Instructor. Empty when the Instructor asked it. */
+export function buildNewQuestion(
+  input: CommentNotificationInput & {
+    instructor: { id: number; name: string };
+  }
+): Notification[] {
+  const recipients = everyoneBut([input.instructor], input.author.id);
+  if (recipients.length === 0) return [];
+  return [
+    {
+      kind: "new-question",
+      recipients,
+      body: `New Question from ${input.author.name} on “${input.lessonTitle}”`,
+      url: questionUrl(input),
+    },
+  ];
+}
+
+/** Tells the Question's author. Empty when they replied to themselves. */
+export function buildReply(
+  input: CommentNotificationInput & {
+    questionAuthor: { id: number; name: string };
+  }
+): Notification[] {
+  const recipients = everyoneBut([input.questionAuthor], input.author.id);
+  if (recipients.length === 0) return [];
+  return [
+    {
+      kind: "reply",
+      recipients,
+      body: `${input.author.name} replied to your Question on “${input.lessonTitle}”`,
+      url: questionUrl(input),
+    },
+  ];
+}
+
 // ─── Senders ───
 
 export function knockSender(apiKey: string): NotificationSender {

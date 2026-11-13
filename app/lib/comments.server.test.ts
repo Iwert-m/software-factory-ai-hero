@@ -112,3 +112,53 @@ describe("postComment", () => {
     });
   });
 });
+
+describe("postComment Notifications", () => {
+  it("tells the course's Instructor about a new Question", () => {
+    const result = postComment(db, base.user.id, lessonId, null, "How?");
+    if (!result.ok) throw new Error(result.error);
+    expect(result.notifications).toEqual([
+      {
+        kind: "new-question",
+        recipients: [
+          { id: String(base.instructor.id), name: base.instructor.name },
+        ],
+        body: `New Question from ${base.user.name} on “Lesson 1”`,
+        url: `/courses/${base.course.slug}/lessons/${lessonId}#question-${result.comment.id}`,
+      },
+    ]);
+  });
+
+  it("tells nobody when the Instructor asks the Question", () => {
+    const result = postComment(db, base.instructor.id, lessonId, null, "Hm?");
+    if (!result.ok) throw new Error(result.error);
+    expect(result.notifications).toEqual([]);
+  });
+
+  it("tells the Question's author about a Reply", () => {
+    const question = mustPost(base.user.id, lessonId, null, "How?");
+    const result = postComment(db, base.instructor.id, lessonId, question.id, "Like this");
+    if (!result.ok) throw new Error(result.error);
+    expect(result.notifications).toEqual([
+      {
+        kind: "reply",
+        recipients: [{ id: String(base.user.id), name: base.user.name }],
+        body: `${base.instructor.name} replied to your Question on “Lesson 1”`,
+        url: `/courses/${base.course.slug}/lessons/${lessonId}#question-${question.id}`,
+      },
+    ]);
+  });
+
+  it("tells nobody when the author replies to their own Question", () => {
+    const question = mustPost(base.user.id, lessonId, null, "How?");
+    const result = postComment(db, base.user.id, lessonId, question.id, "Got it");
+    if (!result.ok) throw new Error(result.error);
+    expect(result.notifications).toEqual([]);
+  });
+
+  it("returns no Notifications for a rejected Comment", () => {
+    const result = postComment(db, base.user.id, lessonId, null, "   ");
+    expect(result).toMatchObject({ ok: false });
+    expect(result).not.toHaveProperty("notifications");
+  });
+});
