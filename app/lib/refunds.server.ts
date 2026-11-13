@@ -39,7 +39,7 @@ import {
 
 export type Db = BetterSQLite3Database<typeof schema>;
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
-type Queryable = Db | Tx;
+export type Queryable = Db | Tx;
 
 type Purchase = typeof purchases.$inferSelect;
 type Seat = typeof coupons.$inferSelect;
@@ -372,59 +372,61 @@ export function raiseRefundRequest(
   reason: string,
   now: Date
 ): RaiseResult {
-  const check = checkRefundRequest(db, purchaseId, buyerId, now);
-  if (!check.ok) return check;
+  return db.transaction((tx): RaiseResult => {
+    const check = checkRefundRequest(tx, purchaseId, buyerId, now);
+    if (!check.ok) return check;
 
-  const { purchase } = check;
-  const buyer = db.select().from(users).where(eq(users.id, buyerId)).get();
-  const course = db
-    .select()
-    .from(courses)
-    .where(eq(courses.id, purchase.courseId))
-    .get();
+    const { purchase } = check;
+    const buyer = tx.select().from(users).where(eq(users.id, buyerId)).get();
+    const course = tx
+      .select()
+      .from(courses)
+      .where(eq(courses.id, purchase.courseId))
+      .get();
 
-  if (!buyer || !course) {
-    return { ok: false, status: 404, error: "Purchase not found." };
-  }
+    if (!buyer || !course) {
+      return { ok: false, status: 404, error: "Purchase not found." };
+    }
 
-  const refundRequest = db
-    .insert(refunds)
-    .values({
-      purchaseId: purchase.id,
-      status: RefundStatus.Open,
-      reason,
-      requestedAt: now.toISOString(),
-    })
-    .returning()
-    .get();
+    const refundRequest = tx
+      .insert(refunds)
+      .values({
+        purchaseId: purchase.id,
+        status: RefundStatus.Open,
+        reason,
+        requestedAt: now.toISOString(),
+      })
+      .returning()
+      .get();
 
-  const kind = kindOf(getSeats(db, purchase.id));
+    const kind = kindOf(getSeats(tx, purchase.id));
 
-  return {
-    ok: true,
-    refundRequestId: refundRequest.id,
-    kind,
-    notifications: buildNewRefundRequest(db, {
+    return {
+      ok: true,
       refundRequestId: refundRequest.id,
-      buyer,
-      courseTitle: course.title,
-      isTeamLicence: kind === "team_licence",
-    }),
-    email: {
-      to: buyer.email,
-      subject: `Refund requested — ${course.title}`,
-      body: [
-        `Hi ${buyer.name},`,
-        "",
-        `We have your refund request for "${course.title}".`,
-        `The refund is for ${formatPrice(purchase.amountPaid)}, the amount you paid.`,
-        "",
-        "Our team reviews every refund request by hand. You do not need to do anything else — we will email you again when it is done.",
-        "",
-        "— The Cadence team",
-      ].join("\n"),
-    },
-  };
+      kind,
+      notifications: buildNewRefundRequest(tx, {
+        refundRequestId: refundRequest.id,
+        buyer,
+        courseTitle: course.title,
+        isTeamLicence: kind === "team_licence",
+      }),
+      email: {
+        to: buyer.email,
+        subject: `Refund requested — ${course.title}`,
+        body: [
+          `Hi ${buyer.name},`,
+          "",
+          `We have your refund request for "${course.title}".`,
+          `The refund is for ${formatPrice(purchase.amountPaid)}, the amount you paid.`,
+          "",
+          "Our team reviews every refund request by hand. You do not need to do anything else — we will email you again when it is done.",
+          "",
+          "— The Cadence team",
+        ].join("\n"),
+      },
+    };
+  });
 }
 
 // ─── Listing Refund Requests ───

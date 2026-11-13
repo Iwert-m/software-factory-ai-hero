@@ -26,6 +26,8 @@ export type NotificationKind =
   | "all-seats-claimed"
   | "new-refund-request";
 
+export type Person = { id: number; name: string };
+
 export type Notification = {
   kind: NotificationKind;
   recipients: { id: string; name: string }[];
@@ -41,7 +43,7 @@ export interface NotificationSender {
 
 /** The person who acted is never told about their own action. */
 function everyoneBut(
-  recipients: { id: number; name: string }[],
+  recipients: Person[],
   actorId: number
 ): Notification["recipients"] {
   return recipients
@@ -49,12 +51,28 @@ function everyoneBut(
     .map((recipient) => ({ id: String(recipient.id), name: recipient.name }));
 }
 
+/** One Notification for everyone but the actor; none when nobody is left. */
+function notifyOthers(
+  people: Person[],
+  actorId: number,
+  build: (recipients: Notification["recipients"]) => Notification
+): Notification[] {
+  const recipients = everyoneBut(people, actorId);
+  return recipients.length === 0 ? [] : [build(recipients)];
+}
+
+function subjectOf(courseTitle: string, isTeamLicence: boolean): string {
+  return isTeamLicence
+    ? `a Team Licence of “${courseTitle}”`
+    : `“${courseTitle}”`;
+}
+
 /** Returns a list: empty when nobody is left to tell. */
 export function buildNewRefundRequest(
   db: Queryable,
   input: {
     refundRequestId: number;
-    buyer: { id: number; name: string };
+    buyer: Person;
     courseTitle: string;
     isTeamLicence: boolean;
   }
@@ -66,27 +84,20 @@ export function buildNewRefundRequest(
     .orderBy(users.id)
     .all();
 
-  const recipients = everyoneBut(platformAdmins, input.buyer.id);
-  if (recipients.length === 0) return [];
+  const subject = subjectOf(input.courseTitle, input.isTeamLicence);
 
-  const subject = input.isTeamLicence
-    ? `a Team Licence of “${input.courseTitle}”`
-    : `“${input.courseTitle}”`;
-
-  return [
-    {
-      kind: "new-refund-request",
-      recipients,
-      body: `New Refund Request from ${input.buyer.name} for ${subject}`,
-      url: `/admin/refunds?refund=${input.refundRequestId}`,
-    },
-  ];
+  return notifyOthers(platformAdmins, input.buyer.id, (recipients) => ({
+    kind: "new-refund-request",
+    recipients,
+    body: `New Refund Request from ${input.buyer.name} for ${subject}`,
+    url: `/admin/refunds?refund=${input.refundRequestId}`,
+  }));
 }
 
 // ─── Questions and Replies ───
 
 type CommentNotificationInput = {
-  author: { id: number; name: string };
+  author: Person;
   lessonId: number;
   lessonTitle: string;
   courseSlug: string;
@@ -101,37 +112,33 @@ function questionUrl(input: CommentNotificationInput): string {
 /** Tells the course's Instructor. Empty when the Instructor asked it. */
 export function buildNewQuestion(
   input: CommentNotificationInput & {
-    instructor: { id: number; name: string };
+    instructor: Person;
   }
 ): Notification[] {
-  const recipients = everyoneBut([input.instructor], input.author.id);
-  if (recipients.length === 0) return [];
-  return [
-    {
-      kind: "new-question",
-      recipients,
-      body: `New Question from ${input.author.name} on “${input.lessonTitle}”`,
-      url: questionUrl(input),
-    },
-  ];
+  return notifyOthers([input.instructor], input.author.id, (recipients) => ({
+    kind: "new-question",
+    recipients,
+    body: `New Question from ${input.author.name} on “${input.lessonTitle}”`,
+    url: questionUrl(input),
+  }));
 }
 
 /** Tells the Question's author. Empty when they replied to themselves. */
 export function buildReply(
   input: CommentNotificationInput & {
-    questionAuthor: { id: number; name: string };
+    questionAuthor: Person;
   }
 ): Notification[] {
-  const recipients = everyoneBut([input.questionAuthor], input.author.id);
-  if (recipients.length === 0) return [];
-  return [
-    {
+  return notifyOthers(
+    [input.questionAuthor],
+    input.author.id,
+    (recipients) => ({
       kind: "reply",
       recipients,
       body: `${input.author.name} replied to your Question on “${input.lessonTitle}”`,
       url: questionUrl(input),
-    },
-  ];
+    })
+  );
 }
 
 /**
@@ -140,66 +147,57 @@ export function buildReply(
  */
 export function buildSeatClaimed(input: {
   purchaseId: number;
-  teamAdmin: { id: number; name: string };
-  claimer: { id: number; name: string };
+  teamAdmin: Person;
+  claimer: Person;
   courseTitle: string;
   claimedCount: number;
   seatCount: number;
 }): Notification[] {
-  const recipients = everyoneBut([input.teamAdmin], input.claimer.id);
-  if (recipients.length === 0) return [];
-
   const url = `/team?licence=${input.purchaseId}`;
-  if (input.claimedCount >= input.seatCount) {
-    return [
-      {
-        kind: "all-seats-claimed",
-        recipients,
-        body: `All ${input.seatCount} Seats on “${input.courseTitle}” are claimed`,
-        url,
-      },
-    ];
-  }
+  const allClaimed = input.claimedCount >= input.seatCount;
 
-  return [
-    {
-      kind: "seat-claimed",
-      recipients,
-      body: `${input.claimer.name} claimed a Seat on “${input.courseTitle}” (${input.claimedCount} of ${input.seatCount} claimed)`,
-      url,
-    },
-  ];
+  return notifyOthers(
+    [input.teamAdmin],
+    input.claimer.id,
+    (recipients): Notification =>
+      allClaimed
+        ? {
+            kind: "all-seats-claimed",
+            recipients,
+            body: `All ${input.seatCount} Seats on “${input.courseTitle}” are claimed`,
+            url,
+          }
+        : {
+            kind: "seat-claimed",
+            recipients,
+            body: `${input.claimer.name} claimed a Seat on “${input.courseTitle}” (${input.claimedCount} of ${input.seatCount} claimed)`,
+            url,
+          }
+  );
 }
 
 /** Tells the buyer of a Purchase how their Refund Request was decided. */
 export function buildRefundRequestDecided(input: {
   purchaseId: number;
-  buyer: { id: number; name: string };
+  buyer: Person;
   decidedById: number;
   courseTitle: string;
   isTeamLicence: boolean;
   decision: "approved" | "declined";
   note: string | null;
 }): Notification[] {
-  const recipients = everyoneBut([input.buyer], input.decidedById);
-  if (recipients.length === 0) return [];
-
-  const subject = input.isTeamLicence
-    ? `a Team Licence of “${input.courseTitle}”`
-    : `“${input.courseTitle}”`;
+  const subject = subjectOf(input.courseTitle, input.isTeamLicence);
   const outcome =
     input.decision === "declined" && input.note
       ? `declined: “${input.note}”`
       : input.decision;
 
-  return [
-    {
-      kind: "refund-request-decided",
-      recipients,
-      body: `Your Refund Request for ${subject} was ${outcome}`,
-      url: `/purchases/${input.purchaseId}`,
-    },
-  ];
+  return notifyOthers([input.buyer], input.decidedById, (recipients) => ({
+    kind: "refund-request-decided",
+    recipients,
+    body: `Your Refund Request for ${subject} was ${outcome}`,
+    url: `/purchases/${input.purchaseId}`,
+  }));
 }
 
 // ─── Senders ───
