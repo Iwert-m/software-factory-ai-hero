@@ -116,3 +116,11 @@ _Avoid_: Resolved, Closed
 **Notification**:
 A message shown inside Cadence that tells one person about something that happened which concerns them. Any Student, Instructor, Team Admin or Platform Admin can receive one.
 _Avoid_: Alert, Message (on its own)
+
+**Unread**:
+A Notification its recipient hasn't opened or marked as read yet. Every Notification starts Unread.
+_Avoid_: New, Unseen
+
+**Read**:
+A Notification its recipient has opened or marked as read. Once Read, it never becomes Unread again.
+_Avoid_: Seen, Viewed, Dismissed, Archived
