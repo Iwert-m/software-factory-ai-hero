@@ -3,6 +3,8 @@ import type { Route } from "./+types/layout.app";
 import { Sidebar } from "~/components/sidebar";
 import { DevUI } from "~/components/dev-ui";
 import { Toaster } from "sonner";
+import { Notifications } from "~/components/notifications";
+import { getKnockClientConfig } from "~/lib/knock-token.server";
 import { getCurrentUserId, getDevCountry } from "~/lib/session";
 import { getCountryTierInfo, COUNTRIES } from "~/lib/ppp";
 import { eq, and, or, sql, desc } from "drizzle-orm";
@@ -213,6 +215,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     countryTierInfo,
     countries: COUNTRIES,
     isTeamAdmin: currentUserId ? isTeamAdmin(currentUserId) : false,
+    knock: currentUserId ? getKnockClientConfig(currentUserId) : null,
   };
 }
 
@@ -225,6 +228,7 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
     countryTierInfo,
     countries,
     isTeamAdmin: userIsTeamAdmin,
+    knock,
   } = loaderData;
 
   return (
@@ -234,9 +238,16 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
         recentCourses={recentCourses}
         isTeamAdmin={userIsTeamAdmin}
       />
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
-      </main>
+      <div className="flex h-screen flex-1 flex-col overflow-hidden">
+        <header className="flex h-14 shrink-0 items-center justify-end gap-2 border-b px-6">
+          {currentUser && knock && (
+            <Notifications userId={currentUser.id} {...knock} />
+          )}
+        </header>
+        <main className="flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
       <DevUI
         users={users}
         currentUser={currentUser}
