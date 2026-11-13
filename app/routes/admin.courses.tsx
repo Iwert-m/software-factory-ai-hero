@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { Route } from "./+types/admin.courses";
 import { getCurrentUserId } from "~/lib/session";
 import { parseFormData } from "~/lib/validation";
+import { sendNotifications } from "~/lib/notifications.server";
 import { changeCourseStatus } from "~/lib/course-status.server";
 import {
   UserRole,
@@ -134,11 +135,13 @@ export async function action({ request }: Route.ActionArgs) {
     const result = changeCourseStatus(
       db,
       parsed.data.courseId,
-      parsed.data.status
+      parsed.data.status,
+      currentUser.id
     );
     if (!result.ok) {
       throw data(result.error, { status: result.status });
     }
+    await sendNotifications(result.notifications);
     return { success: true };
   }
 
