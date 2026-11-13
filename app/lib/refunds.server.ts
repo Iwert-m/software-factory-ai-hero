@@ -19,6 +19,7 @@ import {
 import { formatPrice } from "~/lib/utils";
 import {
   buildNewRefundRequest,
+  buildRefundRequestDecided,
   type Notification,
 } from "~/lib/notifications.server";
 import {
@@ -586,7 +587,9 @@ export function listTeamLicences(db: Queryable, buyerId: number, now: Date) {
 
 // ─── Deciding a Refund Request ───
 
-export type DecisionResult = { ok: true; email: Email } | Failure;
+export type DecisionResult =
+  | { ok: true; email: Email; notifications: Notification[] }
+  | Failure;
 
 function findOpenRefundRequest(
   tx: Queryable,
@@ -698,6 +701,13 @@ export function approveRefundRequest(
     return {
       ok: true,
       email: buildDecisionEmail(tx, purchase, RefundStatus.Approved, note),
+      notifications: buildDecisionNotifications(
+        tx,
+        purchase,
+        platformAdminId,
+        RefundStatus.Approved,
+        note
+      ),
     };
   });
 }
@@ -746,7 +756,45 @@ export function declineRefundRequest(
         RefundStatus.Declined,
         trimmedNote
       ),
+      notifications: buildDecisionNotifications(
+        tx,
+        found.purchase,
+        platformAdminId,
+        RefundStatus.Declined,
+        trimmedNote
+      ),
     };
+  });
+}
+
+/** The Notification the buyer gets, built inside the decision's transaction. */
+function buildDecisionNotifications(
+  tx: Queryable,
+  purchase: Purchase,
+  decidedById: number,
+  decision: RefundStatus.Approved | RefundStatus.Declined,
+  note: string | null
+): Notification[] {
+  const buyer = tx
+    .select()
+    .from(users)
+    .where(eq(users.id, purchase.userId))
+    .get();
+  const course = tx
+    .select()
+    .from(courses)
+    .where(eq(courses.id, purchase.courseId))
+    .get();
+  if (!buyer || !course) return [];
+
+  return buildRefundRequestDecided({
+    purchaseId: purchase.id,
+    buyer,
+    decidedById,
+    courseTitle: course.title,
+    isTeamLicence: kindOf(getSeats(tx, purchase.id)) === "team_licence",
+    decision,
+    note,
   });
 }
 
@@ -795,5 +843,48 @@ function buildDecisionEmail(
       "",
       "— The Cadence team",
     ].join("\n"),
+  };
+}
+
+// ─── The Purchase page ───
+
+/**
+ * One Purchase as its buyer sees it, or null when it is missing or belongs to
+ * someone else. A Notification can link to a Purchase that is gone
+ * (docs/adr/0013), so the page must cope with null.
+ */
+export function getPurchaseForBuyer(
+  db: Queryable,
+  purchaseId: number,
+  buyerId: number
+) {
+  const row = db
+    .select({
+      purchase: purchases,
+      courseTitle: courses.title,
+      courseSlug: courses.slug,
+    })
+    .from(purchases)
+    .innerJoin(courses, eq(purchases.courseId, courses.id))
+    .where(and(eq(purchases.id, purchaseId), eq(purchases.userId, buyerId)))
+    .get();
+
+  if (!row) return null;
+
+  const latestRefundRequest = db
+    .select({ status: refunds.status, decisionNote: refunds.decisionNote })
+    .from(refunds)
+    .where(eq(refunds.purchaseId, purchaseId))
+    .orderBy(desc(refunds.requestedAt), desc(refunds.id))
+    .get();
+
+  return {
+    purchaseId,
+    courseTitle: row.courseTitle,
+    courseSlug: row.courseSlug,
+    amountPaid: row.purchase.amountPaid,
+    purchasedAt: row.purchase.createdAt,
+    kind: kindOf(getSeats(db, purchaseId)),
+    latestRefundRequest: latestRefundRequest ?? null,
   };
 }
