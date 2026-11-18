@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { createTestDb, seedBaseData } from "~/test/setup";
+import { addDays } from "~/test/dates";
 import * as schema from "~/db/schema";
 import { createComment, deleteComment, editComment } from "./comments.server";
 import {
@@ -11,7 +12,7 @@ import type { NotificationKind } from "./notification-feed";
 
 type TestDb = ReturnType<typeof createTestDb>;
 
-const NOW = new Date(2026, 9, 6, 12, 0, 0);
+const NOW = new Date();
 
 let db: TestDb;
 let base: ReturnType<typeof seedBaseData>;
@@ -438,7 +439,7 @@ describe("deleting a comment", () => {
       NOW,
       notifications
     );
-    const later = new Date(2026, 9, 7, 12, 0, 0);
+    const later = addDays(NOW, 1);
 
     expect(
       await deleteComment(
@@ -551,7 +552,7 @@ describe("deleting a comment's Notifications", () => {
 describe("editing a comment", () => {
   it("saves the new body and marks it edited", async () => {
     const question = await post(null);
-    const later = new Date(2026, 9, 7, 12, 0, 0);
+    const later = addDays(NOW, 1);
 
     expect(
       editComment(db, question.id, base.user.id, "  Clearer question.  ", later)

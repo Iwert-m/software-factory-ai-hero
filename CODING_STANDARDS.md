@@ -1,16 +1,26 @@
 # Coding standards
 
-## Fail with a thrown response, not a return value
+## Throw failures, return only what the user can fix
 
-A loader or an action that cannot continue throws. It does not return an
-error shape for the component to unpack.
+A loader or an action that cannot continue throws: a missing record, no
+access, a malformed request.
 
 ```ts
 if (!course) throw data("Course not found", { status: 404 });
 ```
 
-The route then has one success path. A returned error shape gives every
-component a second path to forget about.
+The one exception is an error the user can fix by changing their input, such
+as a Note that is empty or too long. The action returns it so the form can
+show it beside the field, and the user's input stays on screen.
+
+```ts
+if (body.length > MAX_NOTE_LENGTH) {
+  return { ok: false, error: `Notes can be at most ${MAX_NOTE_LENGTH} characters.` };
+}
+```
+
+Anything the user cannot fix from the form throws, so the component handles
+one success shape plus at most one user-correctable error.
 
 ## Parse untrusted input with a schema
 

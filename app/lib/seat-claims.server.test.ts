@@ -11,7 +11,7 @@ import {
 
 type TestDb = ReturnType<typeof createTestDb>;
 
-const NOW = new Date(2026, 9, 6, 12, 0, 0);
+const NOW = new Date();
 
 let db: TestDb;
 let base: ReturnType<typeof seedBaseData>;

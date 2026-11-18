@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { createTestDb, seedBaseData } from "~/test/setup";
+import { addDays } from "~/test/dates";
 import * as schema from "~/db/schema";
 import { enrollStudent, isEnrolled } from "./enrollments.server";
 import { approveRefundRequest, raiseRefundRequest } from "./refunds.server";
@@ -10,7 +11,7 @@ import {
 
 type TestDb = ReturnType<typeof createTestDb>;
 
-const NOW = new Date(2026, 9, 6, 12, 0, 0);
+const NOW = new Date();
 
 let db: TestDb;
 let base: ReturnType<typeof seedBaseData>;
@@ -97,7 +98,7 @@ describe("enrolling a Student", () => {
     );
     expect(isEnrolled(db, base.user.id, base.course.id)).toBe(false);
 
-    const later = new Date(2026, 9, 20, 12, 0, 0);
+    const later = addDays(NOW, 14);
     const reEnrolled = await enrollStudent(
       db,
       base.user.id,
