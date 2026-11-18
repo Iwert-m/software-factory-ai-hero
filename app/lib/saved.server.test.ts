@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestDb, seedBaseData } from "~/test/setup";
+import { addDays, addHours } from "~/test/dates";
 import * as schema from "~/db/schema";
 import { UserRole } from "~/db/schema";
 import {
@@ -16,9 +17,10 @@ import { fakeNotifications } from "./notifications.fake.server";
 
 type TestDb = ReturnType<typeof createTestDb>;
 
-const T1 = new Date(2026, 9, 6, 12, 0, 0);
-const T2 = new Date(2026, 9, 6, 13, 0, 0);
-const T3 = new Date(2026, 9, 6, 14, 0, 0);
+const NOW = new Date();
+const T1 = addHours(NOW, -2);
+const T2 = addHours(NOW, -1);
+const T3 = NOW;
 
 let db: TestDb;
 let base: ReturnType<typeof seedBaseData>;
@@ -192,7 +194,7 @@ describe("the Saved lists", () => {
     saveNote(db, base.user.id, lessonIds[1], "Newest", T3);
     saveNote(db, base.user.id, lessonIds[2], "Middle", T2);
     // Editing the oldest Note puts it first.
-    saveNote(db, base.user.id, lessonIds[0], "Oldest, edited", new Date(2026, 9, 7));
+    saveNote(db, base.user.id, lessonIds[0], "Oldest, edited", addHours(T3, 1));
 
     const rows = listNotes(db, base.user.id);
 
@@ -232,7 +234,7 @@ describe("approving a Refund Request", () => {
         userId: base.user.id,
         courseId: base.course.id,
         amountPaid: 7900,
-        createdAt: new Date(2026, 9, 4).toISOString(),
+        createdAt: addDays(T1, -2).toISOString(),
       })
       .returning()
       .get();
