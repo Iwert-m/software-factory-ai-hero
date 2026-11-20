@@ -34,7 +34,8 @@ export interface CommentFailure {
 }
 
 export type CreateCommentResult =
-  { ok: true; comment: Comment } | CommentFailure;
+  | { ok: true; comment: Comment }
+  | CommentFailure;
 
 /**
  * Posts a Discussion Question (`parentId` null) or a Discussion Reply. A reply
@@ -200,7 +201,8 @@ function snippetOf(body: string) {
 }
 
 export type DeleteCommentResult =
-  { ok: true; comment: Comment } | CommentFailure;
+  | { ok: true; comment: Comment }
+  | CommentFailure;
 
 /**
  * Soft-deletes a comment and archives the Notifications it caused (the

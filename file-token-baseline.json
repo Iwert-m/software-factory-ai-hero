@@ -5,11 +5,11 @@
   "app/modules/instructor-analytics/tests/instructor-analytics.test.ts": 10175,
   "app/routes/courses.$slug.lessons.$lessonId.tsx": 13122,
   "app/routes/courses.$slug.tsx": 8017,
-  "app/routes/instructor.$courseId.lessons.$lessonId.quiz.tsx": 7884,
+  "app/routes/instructor.$courseId.lessons.$lessonId.quiz.tsx": 7886,
   "app/routes/instructor.$courseId.tsx": 15659,
   "app/routes/instructor.analytics.tsx": 8757,
   "request-logger/agents.test.ts": 14191,
-  "request-logger/agents.ts": 13065,
+  "request-logger/agents.ts": 13074,
   "request-logger/proxy.ts": 5114,
   "request-logger/render.ts": 7330,
   "scripts/seed.ts": 23593

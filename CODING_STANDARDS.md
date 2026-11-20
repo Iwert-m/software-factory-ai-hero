@@ -84,6 +84,11 @@ A loader guard does not protect an action. They are separate requests. For a
 week anybody who was signed in could approve a refund by posting to
 `/admin/refunds`.
 
+## Name a boolean so it reads as a question
+
+`isPublished`, `hasSeats`, `canRefund`. Not `published`, `seats`, `refund`.
+The linter cannot see which names hold a boolean, so this one is yours.
+
 ## Avoid the N+1
 
 One query in a loop is N+1 queries. Use a join, or one query with an `IN`.

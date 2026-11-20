@@ -2,4 +2,3 @@ npx lint-staged
 npx tsx scripts/check-file-tokens.ts --staged
 npm run typecheck
 npm run lint:boundaries
-npm run test

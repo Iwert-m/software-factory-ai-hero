@@ -7,7 +7,7 @@ const EXEMPT_PATTERNS = [
   /(^|\/)skills-lock\.json$/,
   /^drizzle\//,
   /_snapshot\.json$/,
-  /^eslint-suppressions\.json$/,
+  /^oxlint-baseline\.json$/,
   /^file-token-baseline\.json$/,
 ];
 

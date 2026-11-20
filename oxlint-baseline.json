@@ -1,0 +1,806 @@
+{
+  "overrides": [
+    {
+      "files": [
+        "app/components/comment-thread.tsx"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "jsx-a11y/no-autofocus": "off",
+        "max-lines-per-function": "off",
+        "react/no-danger": "off"
+      }
+    },
+    {
+      "files": [
+        "app/components/dev-ui.tsx"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "local/no-interface-props": "off",
+        "max-lines-per-function": "off"
+      }
+    },
+    {
+      "files": [
+        "app/components/monaco-markdown-editor.tsx"
+      ],
+      "rules": {
+        "local/no-interface-props": "off",
+        "local/no-raw-hex": "off",
+        "max-lines-per-function": "off",
+        "react/refs": "off",
+        "typescript/no-floating-promises": "off"
+      }
+    },
+    {
+      "files": [
+        "app/components/notification-feed.tsx"
+      ],
+      "rules": {
+        "jsx-a11y/click-events-have-key-events": "off",
+        "jsx-a11y/no-static-element-interactions": "off",
+        "max-lines-per-function": "off",
+        "react-hooks/exhaustive-deps": "off",
+        "react/no-unescaped-entities": "off",
+        "react/set-state-in-effect": "off",
+        "typescript/no-floating-promises": "off",
+        "typescript/unbound-method": "off"
+      }
+    },
+    {
+      "files": [
+        "app/components/sidebar.tsx"
+      ],
+      "rules": {
+        "local/no-interface-props": "off",
+        "max-lines-per-function": "off",
+        "no-empty": "off",
+        "react/set-state-in-effect": "off"
+      }
+    },
+    {
+      "files": [
+        "app/components/star-rating.tsx"
+      ],
+      "rules": {
+        "max-lines-per-function": "off"
+      }
+    },
+    {
+      "files": [
+        "app/components/ui/chart.tsx"
+      ],
+      "rules": {
+        "local/no-raw-hex": "off",
+        "max-lines-per-function": "off",
+        "react/no-danger": "off",
+        "typescript/restrict-template-expressions": "off"
+      }
+    },
+    {
+      "files": [
+        "app/components/youtube-player.tsx"
+      ],
+      "rules": {
+        "jsx-a11y/control-has-associated-label": "off",
+        "jsx-a11y/label-has-associated-control": "off",
+        "max-lines-per-function": "off",
+        "no-unused-vars": "off",
+        "typescript/no-floating-promises": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/bookmarks.server.test.ts"
+      ],
+      "rules": {
+        "vitest/require-to-throw-message": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/bookmarks.server.ts"
+      ],
+      "rules": {
+        "max-params": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/comments.server.test.ts"
+      ],
+      "rules": {
+        "max-lines": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/comments.server.ts"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/country.server.test.ts"
+      ],
+      "rules": {
+        "vitest/require-mock-type-parameters": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/enrollments.server.ts"
+      ],
+      "rules": {
+        "max-params": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/notes.server.test.ts"
+      ],
+      "rules": {
+        "vitest/require-to-throw-message": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/notes.server.ts"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-params": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/notification-feed.knock.ts"
+      ],
+      "rules": {
+        "max-lines-per-function": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/notification-preferences.server.test.ts"
+      ],
+      "rules": {
+        "typescript/require-array-sort-compare": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/notification-preferences.server.ts"
+      ],
+      "rules": {
+        "max-params": "off",
+        "no-await-in-loop": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/notifications.fake.server.ts"
+      ],
+      "rules": {
+        "max-lines-per-function": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/notifications.knock.server.ts"
+      ],
+      "rules": {
+        "max-lines-per-function": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/notifications.server.ts"
+      ],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/ppp.ts"
+      ],
+      "rules": {
+        "max-params": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/refunds.server.test.ts"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines": "off",
+        "typescript/require-array-sort-compare": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/refunds.server.ts"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off",
+        "no-await-in-loop": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/seat-claims.server.test.ts"
+      ],
+      "rules": {
+        "typescript/no-floating-promises": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/seat-claims.server.ts"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/utils.ts"
+      ],
+      "rules": {
+        "max-params": "off"
+      }
+    },
+    {
+      "files": [
+        "app/modules/instructor-analytics/lib/instructor-analytics.ts"
+      ],
+      "rules": {
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off"
+      }
+    },
+    {
+      "files": [
+        "app/modules/instructor-analytics/tests/instructor-analytics.test.ts"
+      ],
+      "rules": {
+        "max-lines": "off",
+        "max-params": "off"
+      }
+    },
+    {
+      "files": [
+        "app/modules/permissions/lib/course-permissions.ts"
+      ],
+      "rules": {
+        "eqeqeq": "off",
+        "local/no-select-all": "off",
+        "max-params": "off"
+      }
+    },
+    {
+      "files": [
+        "app/modules/permissions/tests/course-permissions.test.ts"
+      ],
+      "rules": {
+        "max-lines": "off",
+        "max-params": "off",
+        "no-await-in-loop": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/modules/permissions/tests/person.test.ts"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/root.tsx"
+      ],
+      "rules": {
+        "react/no-danger": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/admin.categories.tsx"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "jsx-a11y/control-has-associated-label": "off",
+        "local/no-select-all": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "react-hooks/exhaustive-deps": "off",
+        "react/no-array-index-key": "off",
+        "react/set-state-in-effect": "off",
+        "typescript/no-floating-promises": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/admin.courses.tsx"
+      ],
+      "rules": {
+        "jsx-a11y/control-has-associated-label": "off",
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "no-unused-vars": "off",
+        "react/no-array-index-key": "off",
+        "typescript/no-floating-promises": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/admin.refunds.tsx"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "max-lines-per-function": "off",
+        "typescript/no-floating-promises": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/admin.users.tsx"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "jsx-a11y/control-has-associated-label": "off",
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off",
+        "no-unused-vars": "off",
+        "react/no-array-index-key": "off",
+        "react/set-state-in-effect": "off",
+        "typescript/no-floating-promises": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/courses.$slug.$moduleId.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "no-unused-vars": "off",
+        "react/no-array-index-key": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/courses.$slug.lessons.$lessonId.tsx"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "local/no-select-all": "off",
+        "max-depth": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "no-console": "off",
+        "no-unused-vars": "off",
+        "react/no-danger": "off",
+        "react/no-unescaped-entities": "off",
+        "react/set-state-in-effect": "off",
+        "typescript/no-explicit-any": "off",
+        "typescript/no-floating-promises": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/courses.$slug.purchase.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/courses.$slug.refund.ts"
+      ],
+      "rules": {
+        "local/no-select-all": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/courses.$slug.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "react/no-array-index-key": "off",
+        "react/no-danger": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/courses.$slug.welcome.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/courses.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off",
+        "no-unused-vars": "off",
+        "react/no-array-index-key": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/dashboard.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "no-unused-vars": "off",
+        "react/no-array-index-key": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/home.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off",
+        "no-empty": "off",
+        "no-empty-pattern": "off",
+        "react/set-state-in-effect": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/instructor.$courseId.lessons.$lessonId.quiz.tsx"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "local/no-select-all": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off",
+        "no-unused-vars": "off",
+        "react/no-array-index-key": "off",
+        "typescript/no-floating-promises": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/instructor.$courseId.lessons.$lessonId.tsx"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off",
+        "no-unused-vars": "off",
+        "react/no-unescaped-entities": "off",
+        "typescript/no-floating-promises": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/instructor.$courseId.modules.$moduleId.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "react/no-array-index-key": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/instructor.$courseId.students.tsx"
+      ],
+      "rules": {
+        "jsx-a11y/control-has-associated-label": "off",
+        "local/no-select-all": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "no-unused-vars": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/instructor.$courseId.tsx"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "jsx-a11y/control-has-associated-label": "off",
+        "local/no-select-all": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off",
+        "no-unused-vars": "off",
+        "react/no-unescaped-entities": "off",
+        "react/set-state-in-effect": "off",
+        "typescript/no-floating-promises": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/instructor.analytics.tsx"
+      ],
+      "rules": {
+        "max-lines": "off",
+        "max-lines-per-function": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/instructor.new.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/instructor.questions.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "react/no-danger": "off",
+        "react/set-state-in-effect": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/instructor.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "no-unused-vars": "off",
+        "react/no-array-index-key": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/layout.app.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/login.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "react/no-unescaped-entities": "off",
+        "typescript/no-base-to-string": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/redeem.$code.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "no-unused-vars": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/saved.tsx"
+      ],
+      "rules": {
+        "max-lines-per-function": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/settings.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/signup.tsx"
+      ],
+      "rules": {
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "no-unused-vars": "off",
+        "typescript/no-base-to-string": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/team.tsx"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "local/no-select-all": "off",
+        "max-lines-per-function": "off",
+        "no-unused-vars": "off",
+        "typescript/no-floating-promises": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "request-logger/agents.test.ts"
+      ],
+      "rules": {
+        "max-lines": "off"
+      }
+    },
+    {
+      "files": [
+        "request-logger/agents.ts"
+      ],
+      "rules": {
+        "eqeqeq": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off"
+      }
+    },
+    {
+      "files": [
+        "request-logger/config-wizard.test.ts"
+      ],
+      "rules": {
+        "vitest/require-mock-type-parameters": "off"
+      }
+    },
+    {
+      "files": [
+        "request-logger/config.ts"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "max-lines-per-function": "off"
+      }
+    },
+    {
+      "files": [
+        "request-logger/model-discovery.test.ts"
+      ],
+      "rules": {
+        "vitest/require-mock-type-parameters": "off"
+      }
+    },
+    {
+      "files": [
+        "request-logger/proxy.test.ts"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "request-logger/proxy.ts"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "request-logger/render.test.ts"
+      ],
+      "rules": {
+        "typescript/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": [
+        "request-logger/render.ts"
+      ],
+      "rules": {
+        "eqeqeq": "off",
+        "id-denylist": "off",
+        "max-depth": "off",
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "no-unused-vars": "off",
+        "typescript/no-explicit-any": "off",
+        "unicorn/no-useless-fallback-in-spread": "off"
+      }
+    },
+    {
+      "files": [
+        "scripts/push-knock-workflows.ts"
+      ],
+      "rules": {
+        "id-denylist": "off",
+        "max-params": "off",
+        "no-await-in-loop": "off",
+        "unicorn/no-invalid-fetch-options": "off"
+      }
+    },
+    {
+      "files": [
+        "scripts/seed.ts"
+      ],
+      "rules": {
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "max-params": "off",
+        "no-unused-vars": "off",
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "scripts/sync-users-to-knock.ts"
+      ],
+      "rules": {
+        "local/no-select-all": "off"
+      }
+    },
+    {
+      "files": [
+        "scripts/update-lint-baseline.ts"
+      ],
+      "rules": {
+        "simple-import-sort/imports": "off"
+      }
+    }
+  ]
+}

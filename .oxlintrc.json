@@ -1,0 +1,181 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": ["./oxlint-baseline.json"],
+  "plugins": [
+    "eslint",
+    "typescript",
+    "oxc",
+    "import",
+    "react",
+    "jsx-a11y",
+    "vitest"
+  ],
+  "jsPlugins": [
+    "./lint/local-plugin.js",
+    "eslint-plugin-simple-import-sort",
+    "eslint-plugin-sonarjs"
+  ],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "ignorePatterns": [
+    "build/**",
+    ".react-router/**",
+    "node_modules/**",
+    "drizzle/**",
+    ".claude/**",
+    ".agents/**",
+    ".sandcastle/**",
+    "_internal/**",
+    "public/**"
+  ],
+  "rules": {
+    "eqeqeq": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "no-console": [
+      "error",
+      {
+        "allow": ["error"]
+      }
+    ],
+    "no-useless-catch": "error",
+    "no-empty": [
+      "error",
+      {
+        "allowEmptyCatch": false
+      }
+    ],
+    "prefer-arrow-callback": "error",
+    "no-else-return": "error",
+    "no-await-in-loop": "error",
+    "max-lines": [
+      "error",
+      {
+        "max": 500,
+        "skipBlankLines": false,
+        "skipComments": false
+      }
+    ],
+    "max-lines-per-function": [
+      "error",
+      {
+        "max": 50,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ],
+    "max-params": [
+      "error",
+      {
+        "max": 3
+      }
+    ],
+    "max-depth": [
+      "error",
+      {
+        "max": 3
+      }
+    ],
+    "id-denylist": [
+      "error",
+      "req",
+      "res",
+      "e",
+      "err",
+      "evt",
+      "idx",
+      "btn",
+      "msg",
+      "ctx",
+      "cb",
+      "val",
+      "tmp"
+    ],
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/only-throw-error": [
+      "error",
+      {
+        "allow": [
+          {
+            "from": "lib",
+            "name": "Response"
+          },
+          {
+            "from": "package",
+            "package": "react-router",
+            "name": "DataWithResponseInit"
+          }
+        ]
+      }
+    ],
+    "typescript/no-inferrable-types": "error",
+    "typescript/consistent-type-definitions": ["error", "interface"],
+    "import/no-default-export": "error",
+    "local/no-cast-form-value": "error",
+    "local/no-select-all": "error",
+    "local/no-sql-raw": "error",
+    "local/no-raw-hex": "error",
+    "local/no-interface-props": "error",
+    "simple-import-sort/imports": [
+      "error",
+      {
+        "groups": [["^node:", "^@?\\w"], ["^~/"], ["^\\."]]
+      }
+    ],
+    "simple-import-sort/exports": "error",
+    "sonarjs/no-commented-code": "error",
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error",
+    "react/no-array-index-key": "error",
+    "react/jsx-no-target-blank": "error",
+    "react/no-danger": "error",
+    "react/no-unescaped-entities": "error",
+    "react/jsx-key": "error",
+    "jsx-a11y/alt-text": "error",
+    "jsx-a11y/label-has-associated-control": "error",
+    "jsx-a11y/click-events-have-key-events": "error",
+    "jsx-a11y/no-static-element-interactions": "error",
+    "jsx-a11y/tabindex-no-positive": "error",
+    "jsx-a11y/no-autofocus": "error",
+    "vitest/no-disabled-tests": "error",
+    "vitest/no-focused-tests": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.tsx"],
+      "rules": {
+        "typescript/consistent-type-definitions": "off"
+      }
+    },
+    {
+      "files": [
+        "app/routes/**",
+        "app/root.tsx",
+        "app/routes.ts",
+        "*.config.{js,ts}",
+        "lint/**"
+      ],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": ["**/*.test.{ts,tsx}"],
+      "rules": {
+        "max-lines-per-function": "off"
+      }
+    },
+    {
+      "files": ["scripts/**", "request-logger/**"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
+}

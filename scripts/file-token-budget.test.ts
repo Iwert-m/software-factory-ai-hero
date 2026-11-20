@@ -55,7 +55,7 @@ describe("isExemptFromBudget", () => {
     "package-lock.json",
     "drizzle/0001_init.sql",
     "drizzle/meta/0001_snapshot.json",
-    "eslint-suppressions.json",
+    "oxlint-baseline.json",
     "file-token-baseline.json",
   ])("exempts generated file %s", (path) => {
     expect(isExemptFromBudget(path)).toBe(true);
