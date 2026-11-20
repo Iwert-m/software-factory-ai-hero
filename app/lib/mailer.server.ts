@@ -6,11 +6,11 @@ import { join } from "node:path";
 // token (local dev, tests) each message is written to .outbox/ as a JSON file
 // instead, so it can be read without sending anything.
 
-export type Email = {
+export interface Email {
   to: string;
   subject: string;
   body: string;
-};
+}
 
 export interface MailTransport {
   send(email: Email): Promise<void>;

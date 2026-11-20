@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { createTestDb, seedBaseData, type TestDb } from "~/test/setup";
 import { eq } from "drizzle-orm";
+import { beforeEach, describe, expect, it } from "vitest";
+
 import * as schema from "~/db/schema";
 import { setCurrentUserId } from "~/lib/session";
+import { createTestDb, seedBaseData, type TestDb } from "~/test/setup";
+
 import { createCoursePermissions } from "../course-permissions.server";
 import type { Person } from "../person.server";
 

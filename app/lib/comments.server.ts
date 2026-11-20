@@ -1,15 +1,16 @@
-import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import * as schema from "~/db/schema";
 import { eq } from "drizzle-orm";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+
+import * as schema from "~/db/schema";
 import { comments, courses, lessons, modules } from "~/db/schema";
 import { MAX_COMMENT_LENGTH, MIN_COMMENT_LENGTH } from "~/lib/comments";
-import { markdown } from "~/lib/text";
 import {
   archiveForCommentSafely,
-  sendSafely,
   findNotificationPerson,
   type Notifications,
+  sendSafely,
 } from "~/lib/notifications.server";
+import { markdown } from "~/lib/text";
 
 export type Db = BetterSQLite3Database<typeof schema>;
 
@@ -27,7 +28,10 @@ function getComment(db: Db, commentId: number) {
   return db.select().from(comments).where(eq(comments.id, commentId)).get();
 }
 
-export type CommentFailure = { ok: false; error: string };
+export interface CommentFailure {
+  ok: false;
+  error: string;
+}
 
 export type CreateCommentResult =
   { ok: true; comment: Comment } | CommentFailure;

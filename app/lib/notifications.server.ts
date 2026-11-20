@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { eq } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+
 import * as schema from "~/db/schema";
 import { users } from "~/db/schema";
 import type {
@@ -23,12 +24,12 @@ import type { NotificationPreferences } from "~/lib/notification-preferences";
 //   missing. Its feed is empty.
 
 /** Someone a Notification is about or for, as Cadence knows them. */
-export type NotificationPerson = {
+export interface NotificationPerson {
   id: number;
   name: string;
   email: string;
   avatarUrl: string | null;
-};
+}
 
 /** The user's row, as the person Notifications know. */
 export function toNotificationPerson(

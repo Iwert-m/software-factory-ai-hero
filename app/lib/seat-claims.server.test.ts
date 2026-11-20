@@ -1,14 +1,16 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { createTestDb, seedBaseData, type TestDb } from "~/test/setup";
 import { eq } from "drizzle-orm";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import * as schema from "~/db/schema";
+import { createTestDb, seedBaseData, type TestDb } from "~/test/setup";
+
 import { enrollStudent, isEnrolled } from "./enrollments.server";
+import {
+  type FakeNotifications,
+  fakeNotifications,
+} from "./notifications.fake.server";
 import { approveRefundRequest, raiseRefundRequest } from "./refunds.server";
 import { claimSeat } from "./seat-claims.server";
-import {
-  fakeNotifications,
-  type FakeNotifications,
-} from "./notifications.fake.server";
 
 const NOW = new Date(2026, 9, 6, 12, 0, 0);
 

@@ -78,14 +78,14 @@ export type NotificationData<K extends NotificationKind> = z.infer<
 >;
 
 /** What the browser needs to read one person's Notification Feed live. */
-export type FeedCredentials = {
+export interface FeedCredentials {
   userId: string;
   userToken: string;
   publicKey: string;
   feedChannelId: string;
-};
+}
 
-type FeedNotificationOf<K extends NotificationKind> = {
+interface FeedNotificationOf<K extends NotificationKind> {
   id: string;
   kind: K;
   data: NotificationData<K>;
@@ -94,13 +94,13 @@ type FeedNotificationOf<K extends NotificationKind> = {
   insertedAt: string;
   readAt: string | null;
   seenAt: string | null;
-};
+}
 
 export type FeedNotification = {
   [K in NotificationKind]: FeedNotificationOf<K>;
 }[NotificationKind];
 
-export type FeedState = {
+export interface FeedState {
   /** Newest first. */
   notifications: FeedNotification[];
   unseenCount: number;
@@ -110,7 +110,7 @@ export type FeedState = {
   hasMore: boolean;
   /** A `loadMore()` is in flight. */
   loadingMore: boolean;
-};
+}
 
 /**
  * One signed-in person's Notification Feed in the browser, kept up to date

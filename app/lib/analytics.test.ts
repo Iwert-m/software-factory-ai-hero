@@ -1,13 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import {
   ANALYTICS_RANGES,
   DEFAULT_ANALYTICS_RANGE,
-  PLATFORM_FEE_PERCENT,
-  PLATFORM_FEE_RATE,
   formatBucket,
   formatMoney,
-  rangeStart,
   parseAnalyticsRange,
+  PLATFORM_FEE_PERCENT,
+  PLATFORM_FEE_RATE,
+  rangeStart,
   splitRevenue,
 } from "./analytics";
 

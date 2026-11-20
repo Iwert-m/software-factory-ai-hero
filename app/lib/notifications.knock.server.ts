@@ -3,6 +3,7 @@ import type {
   PreferenceSet,
   PreferenceSetChannelTypes,
 } from "@knocklabs/node/resources/recipients/preferences";
+
 import type { NotificationKind } from "~/lib/notification-feed";
 import {
   NOTIFICATION_CATEGORIES,
@@ -105,12 +106,12 @@ const PREFERENCE_SET = "default";
 
 const USER_TOKEN_LIFETIME_SECONDS = 60 * 60;
 
-export type KnockConfig = {
+export interface KnockConfig {
   secretKey: string;
   publicKey: string;
   signingKey: string;
   feedChannelId: string;
-};
+}
 
 export function knockNotifications(config: KnockConfig): Notifications {
   const knock = new Knock({ apiKey: config.secretKey });

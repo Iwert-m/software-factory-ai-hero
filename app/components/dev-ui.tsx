@@ -1,9 +1,10 @@
+import { ChevronDown, ChevronUp, Globe } from "lucide-react";
 import { useState } from "react";
 import { Form, useLocation } from "react-router";
+
 import { Button } from "~/components/ui/button";
-import { cn } from "~/lib/utils";
 import type { UserRole } from "~/db/schema";
-import { ChevronDown, ChevronUp, Globe } from "lucide-react";
+import { cn } from "~/lib/utils";
 
 interface DevUser {
   id: number;
@@ -40,7 +41,13 @@ function RoleBadge({ role }: { role: string }) {
   );
 }
 
-export function DevUI({ users, currentUser, devCountry, countryTierInfo, countries }: DevUIProps) {
+export function DevUI({
+  users,
+  currentUser,
+  devCountry,
+  countryTierInfo,
+  countries,
+}: DevUIProps) {
   const [minimized, setMinimized] = useState(false);
   const [open, setOpen] = useState(false);
   const location = useLocation();

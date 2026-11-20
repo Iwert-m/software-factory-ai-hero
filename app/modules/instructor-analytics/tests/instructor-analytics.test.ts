@@ -1,12 +1,14 @@
-import { describe, it, expect, beforeEach } from "vitest";
 import { eq } from "drizzle-orm";
-import { createTestDb, seedBaseData, type TestDb } from "~/test/setup";
+import { beforeEach, describe, expect, it } from "vitest";
+
 import * as schema from "~/db/schema";
 import { CourseStatus, LessonProgressStatus, UserRole } from "~/db/schema";
 import { markdown } from "~/lib/text";
+import { createTestDb, seedBaseData, type TestDb } from "~/test/setup";
+
 import {
-  createInstructorAnalytics,
   type AnalyticsViewer,
+  createInstructorAnalytics,
 } from "../index.server";
 
 // Noon UTC keeps every fixture on the same calendar day in local time and in

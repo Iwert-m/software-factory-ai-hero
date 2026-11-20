@@ -1,26 +1,27 @@
-import { NavLink, Form } from "react-router";
-import { useState, useEffect } from "react";
-import { cn } from "~/lib/utils";
-import { UserRole } from "~/db/schema";
-import { UserAvatar } from "~/components/user-avatar";
-import { NotificationBell } from "~/components/notification-feed";
 import {
   Bookmark,
   BookOpen,
   ChartColumn,
-  LayoutDashboard,
   GraduationCap,
+  LayoutDashboard,
+  LogOut,
   MessageSquare,
-  Shield,
-  Tag,
+  Moon,
   Receipt,
+  Settings,
+  Shield,
+  Sun,
+  Tag,
   Users,
   UsersRound,
-  Moon,
-  Sun,
-  LogOut,
-  Settings,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Form, NavLink } from "react-router";
+
+import { NotificationBell } from "~/components/notification-feed";
+import { UserAvatar } from "~/components/user-avatar";
+import { UserRole } from "~/db/schema";
+import { cn } from "~/lib/utils";
 
 interface CurrentUser {
   id: number;

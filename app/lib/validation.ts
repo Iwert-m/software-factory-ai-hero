@@ -1,11 +1,14 @@
 import { data } from "react-router";
 import type { z } from "zod";
 
-type ParseSuccess<T> = { success: true; data: T };
-type ParseFailure = {
+interface ParseSuccess<T> {
+  success: true;
+  data: T;
+}
+interface ParseFailure {
   success: false;
   errors: Record<string, string>;
-};
+}
 type ParseResult<T> = ParseSuccess<T> | ParseFailure;
 
 /**

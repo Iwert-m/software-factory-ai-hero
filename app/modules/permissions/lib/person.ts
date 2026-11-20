@@ -1,6 +1,7 @@
-import { data } from "react-router";
 import { eq } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import { data } from "react-router";
+
 import type * as schema from "~/db/schema";
 import { UserRole, users } from "~/db/schema";
 import { resolveCountry } from "~/lib/country.server";
@@ -10,11 +11,11 @@ export type Db = BetterSQLite3Database<typeof schema>;
 
 export type PersonRole = "student" | "instructor" | "platform-admin";
 
-export type Person = {
+export interface Person {
   id: number;
   role: PersonRole;
   country: string | null;
-};
+}
 
 const ROLES: Record<UserRole, PersonRole> = {
   [UserRole.Student]: "student",

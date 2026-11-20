@@ -13,19 +13,22 @@ import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
+
 import * as schema from "../app/db/schema";
-import { defaultNotifications } from "../app/lib/notifications.server";
 import {
   syncAllUsers,
   syncUser,
 } from "../app/lib/notification-preferences.server";
+import { defaultNotifications } from "../app/lib/notifications.server";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const envFile = path.join(root, ".env");
 if (existsSync(envFile)) process.loadEnvFile(envFile);
 
 if (!process.env.KNOCK_SECRET_API_KEY) {
-  console.error("KNOCK_SECRET_API_KEY is not set (in .env or the environment).");
+  console.error(
+    "KNOCK_SECRET_API_KEY is not set (in .env or the environment)."
+  );
   process.exit(1);
 }
 

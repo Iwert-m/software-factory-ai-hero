@@ -1,7 +1,8 @@
-import { useState } from "react";
 import { Star } from "lucide-react";
-import { cn } from "~/lib/utils";
+import { useState } from "react";
+
 import { MAX_RATING } from "~/lib/ratings";
+import { cn } from "~/lib/utils";
 
 const STARS = Array.from({ length: MAX_RATING }, (_, i) => i + 1);
 
@@ -41,10 +42,7 @@ export function StarRating({
     >
       <span className="flex items-center">
         {STARS.map((star) => {
-          const fillPercent = Math.max(
-            0,
-            Math.min(1, average - (star - 1))
-          );
+          const fillPercent = Math.max(0, Math.min(1, average - (star - 1)));
           return (
             <span key={star} className="relative">
               <Star className={cn(starSize, "text-muted-foreground/40")} />

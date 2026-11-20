@@ -1,12 +1,13 @@
-import Knock from "@knocklabs/client";
 import type { FeedItem } from "@knocklabs/client";
+import Knock from "@knocklabs/client";
+
 import {
-  parseFeedNotification,
-  unreadAmong,
   type FeedCredentials,
   type FeedNotification,
   type FeedState,
   type NotificationFeed,
+  parseFeedNotification,
+  unreadAmong,
 } from "~/lib/notification-feed";
 
 // ─── Knock adapter for the browser's NotificationFeed ───

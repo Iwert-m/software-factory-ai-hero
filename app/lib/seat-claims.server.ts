@@ -1,5 +1,6 @@
 import { and, count, eq, isNull } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+
 import * as schema from "~/db/schema";
 import { coupons, courses, enrollments, purchases } from "~/db/schema";
 import {
@@ -7,13 +8,13 @@ import {
   isEnrolled,
   notifyInstructorOfEnrollment,
 } from "~/lib/enrollments.server";
-import { getSeatAvailability } from "~/lib/refunds.server";
 import {
-  sendSafely,
   findNotificationPerson,
   type Notifications,
+  sendSafely,
 } from "~/lib/notifications.server";
 import { checkCountryLock } from "~/lib/ppp";
+import { getSeatAvailability } from "~/lib/refunds.server";
 
 export type Db = BetterSQLite3Database<typeof schema>;
 

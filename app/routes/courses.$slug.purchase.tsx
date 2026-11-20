@@ -1,45 +1,47 @@
-import { Link, useFetcher, redirect, useSearchParams } from "react-router";
-import { useState, useEffect } from "react";
+import crypto from "crypto";
+import { and, eq, or, sql } from "drizzle-orm";
+import { ArrowLeft, BookOpen, Clock, Minus, Plus, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, redirect, useFetcher, useSearchParams } from "react-router";
+import { data } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-import type { Route } from "./+types/courses.$slug.purchase";
-import { people } from "~/modules/permissions/person.server";
-import { db } from "~/db";
-import {
-  courses,
-  categories,
-  users,
-  modules,
-  lessons,
-  enrollments,
-  purchases,
-  teams,
-  teamMembers,
-  coupons,
-  CourseStatus,
-  TeamMemberRole,
-} from "~/db/schema";
-import { eq, and, or, sql } from "drizzle-orm";
-import crypto from "crypto";
-import { Card, CardContent } from "~/components/ui/card";
+
+import { CourseImage } from "~/components/course-image";
 import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
 import {
   Tabs,
-  TabsList,
-  TabsTrigger,
   TabsContent,
   TabsContentNoShift,
+  TabsList,
+  TabsTrigger,
 } from "~/components/ui/tabs";
-import { BookOpen, Clock, Users, ArrowLeft, Minus, Plus } from "lucide-react";
-import { CourseImage } from "~/components/course-image";
 import { UserAvatar } from "~/components/user-avatar";
-import { data } from "react-router";
-import { formatDuration, formatPrice } from "~/lib/utils";
+import { db } from "~/db";
+import {
+  categories,
+  coupons,
+  courses,
+  CourseStatus,
+  enrollments,
+  lessons,
+  modules,
+  purchases,
+  TeamMemberRole,
+  teamMembers,
+  teams,
+  users,
+} from "~/db/schema";
 import { resolveCountry } from "~/lib/country.server";
-import { calculatePppPrice, getCountryTierInfo, COUNTRIES } from "~/lib/ppp";
-import { parseFormData, parseParams } from "~/lib/validation";
 import { enrollStudent, isEnrolled } from "~/lib/enrollments.server";
 import { defaultNotifications } from "~/lib/notifications.server";
+import { calculatePppPrice, COUNTRIES, getCountryTierInfo } from "~/lib/ppp";
+import { formatDuration, formatPrice } from "~/lib/utils";
+import { parseFormData, parseParams } from "~/lib/validation";
+import { people } from "~/modules/permissions/person.server";
+
+import type { Route } from "./+types/courses.$slug.purchase";
 
 function getCourseBySlug(slug: string) {
   return db.select().from(courses).where(eq(courses.slug, slug)).get();

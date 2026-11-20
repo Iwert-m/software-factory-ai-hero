@@ -1,12 +1,13 @@
 import { db } from "~/db";
-import type { Db, Person } from "./lib/person";
+
 import {
+  type Capability,
+  type CourseRef,
   decide,
   getCourseDecisions,
   requireCapability,
-  type Capability,
-  type CourseRef,
 } from "./lib/course-permissions";
+import type { Db, Person } from "./lib/person";
 
 export type {
   Capability,

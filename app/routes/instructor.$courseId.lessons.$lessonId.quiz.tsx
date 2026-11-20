@@ -1,32 +1,12 @@
-import { useState } from "react";
-import { Link, useFetcher, useNavigate } from "react-router";
-import { toast } from "sonner";
-import type { Route } from "./+types/instructor.$courseId.lessons.$lessonId.quiz";
-import { coursePermissions } from "~/modules/permissions/course-permissions.server";
 import {
-  QuestionType,
-  modules,
-  lessons,
-  quizzes,
-  quizQuestions,
-  quizOptions,
-  quizAttempts,
-  quizAnswers,
-} from "~/db/schema";
-import { db } from "~/db";
+  DragDropContext,
+  Draggable,
+  Droppable,
+  type DropResult,
+} from "@hello-pangea/dnd";
 import { eq, sql } from "drizzle-orm";
-import { Card, CardContent, CardHeader } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Check,
@@ -37,17 +17,39 @@ import {
   Save,
   Trash2,
   XCircle,
-  AlertTriangle,
 } from "lucide-react";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  type DropResult,
-} from "@hello-pangea/dnd";
+import { useState } from "react";
+import { Link, useFetcher, useNavigate } from "react-router";
 import { data, isRouteErrorResponse } from "react-router";
+import { toast } from "sonner";
 import { z } from "zod";
+
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { db } from "~/db";
+import {
+  lessons,
+  modules,
+  QuestionType,
+  quizAnswers,
+  quizAttempts,
+  quizOptions,
+  quizQuestions,
+  quizzes,
+} from "~/db/schema";
 import { parseFormData } from "~/lib/validation";
+import { coursePermissions } from "~/modules/permissions/course-permissions.server";
+
+import type { Route } from "./+types/instructor.$courseId.lessons.$lessonId.quiz";
 
 const wizardDataSchema = z.object({
   title: z.string().trim().min(1, "Quiz title is required."),

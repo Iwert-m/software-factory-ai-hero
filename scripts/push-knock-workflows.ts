@@ -13,6 +13,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
 import type { NotificationKind } from "../app/lib/notification-feed";
 import { KNOCK_WORKFLOWS } from "../app/lib/notifications.knock.server";
 
@@ -109,7 +110,9 @@ const channels: { entries: { id: string; key: string }[] } = await mapi(
 );
 const channel = channels.entries.find((c) => c.id === channelId);
 if (!channel) {
-  console.error(`No Knock channel has the id ${channelId} (KNOCK_FEED_CHANNEL_ID).`);
+  console.error(
+    `No Knock channel has the id ${channelId} (KNOCK_FEED_CHANNEL_ID).`
+  );
   process.exit(1);
 }
 

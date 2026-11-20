@@ -1,21 +1,4 @@
-import { Link } from "react-router";
-import type { Route } from "./+types/courses.$slug.$moduleId";
-import { coursePermissions } from "~/modules/permissions/course-permissions.server";
-import { db } from "~/db";
-import {
-  categories,
-  courses,
-  lessonProgress,
-  lessons,
-  modules,
-  users,
-  LessonProgressStatus,
-} from "~/db/schema";
 import { and, eq, or } from "drizzle-orm";
-import { Card, CardContent, CardHeader } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Skeleton } from "~/components/ui/skeleton";
-import { UserAvatar } from "~/components/user-avatar";
 import {
   AlertTriangle,
   BookOpen,
@@ -26,8 +9,27 @@ import {
   PlayCircle,
   Video,
 } from "lucide-react";
+import { Link } from "react-router";
 import { data, isRouteErrorResponse } from "react-router";
+
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader } from "~/components/ui/card";
+import { Skeleton } from "~/components/ui/skeleton";
+import { UserAvatar } from "~/components/user-avatar";
+import { db } from "~/db";
+import {
+  categories,
+  courses,
+  lessonProgress,
+  LessonProgressStatus,
+  lessons,
+  modules,
+  users,
+} from "~/db/schema";
 import { formatDuration } from "~/lib/utils";
+import { coursePermissions } from "~/modules/permissions/course-permissions.server";
+
+import type { Route } from "./+types/courses.$slug.$moduleId";
 
 function getCourseWithDetails(id: number) {
   const course = db

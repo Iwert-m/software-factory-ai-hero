@@ -1,9 +1,11 @@
-import { data } from "react-router";
 import { and, eq } from "drizzle-orm";
+import { data } from "react-router";
+
 import { courses, enrollments, lessons, modules } from "~/db/schema";
 import { checkCountryLock, countryName } from "~/lib/ppp";
 import { getNewestIndividualPurchase } from "~/lib/refunds.server";
-import { getPerson, SIGNED_OUT_MESSAGE, type Db, type Person } from "./person";
+
+import { type Db, getPerson, type Person, SIGNED_OUT_MESSAGE } from "./person";
 
 export type Capability = "view" | "take" | "manage";
 

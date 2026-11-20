@@ -1,8 +1,9 @@
 import { db } from "~/db";
+
 import {
-  getInstructorAnalytics,
   type AnalyticsViewer,
   type Db,
+  getInstructorAnalytics,
 } from "./lib/instructor-analytics";
 
 export type {

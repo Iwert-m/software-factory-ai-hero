@@ -15,29 +15,30 @@ import {
 } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { alias, type SQLiteColumn } from "drizzle-orm/sqlite-core";
+
 import * as schema from "~/db/schema";
 import {
-  CourseStatus,
-  LessonProgressStatus,
-  UserRole,
   comments,
+  coupons,
   courseRatings,
   courses,
-  coupons,
+  CourseStatus,
   enrollments,
   lessonProgress,
+  LessonProgressStatus,
   lessons,
   modules,
   purchases,
   quizAttempts,
   quizzes,
+  UserRole,
   users,
 } from "~/db/schema";
 import {
+  type AnalyticsRange,
   parseAnalyticsRange,
   rangeStart,
   splitRevenue,
-  type AnalyticsRange,
 } from "~/lib/analytics";
 import { getDiscountForCountry } from "~/lib/ppp";
 import { calendarDay, lastDayOfWindow } from "~/lib/refunds.server";
@@ -52,7 +53,10 @@ import { calendarDay, lastDayOfWindow } from "~/lib/refunds.server";
 
 export type Db = BetterSQLite3Database<typeof schema>;
 
-export type AnalyticsViewer = { userId: number; isAdmin: boolean };
+export interface AnalyticsViewer {
+  userId: number;
+  isAdmin: boolean;
+}
 
 // "course" is the second tab; anything else falls back to the overview.
 export type AnalyticsTab = "overview" | "course";
@@ -63,31 +67,31 @@ export function parseId(value: string | null): number | null {
   return value !== null && Number.isInteger(id) && id > 0 ? id : null;
 }
 
-export type RevenueSummary = {
+export interface RevenueSummary {
   grossCents: number;
   feeCents: number;
   netCents: number;
   purchaseCount: number;
-};
+}
 
-export type RevenuePoint = {
+export interface RevenuePoint {
   bucket: string;
   grossCents: number;
   netCents: number;
-};
+}
 
-export type RevenueSeries = {
+export interface RevenueSeries {
   granularity: "day" | "month";
   points: RevenuePoint[];
-};
+}
 
-export type StudentRevenue = {
+export interface StudentRevenue {
   userId: number;
   name: string;
   revenueCents: number;
-};
+}
 
-export type TopBuyer = {
+export interface TopBuyer {
   userId: number;
   name: string;
   email: string;
@@ -96,41 +100,41 @@ export type TopBuyer = {
   seatsBought: number;
   seatsUnredeemed: number;
   enrolled: boolean;
-};
+}
 
-export type RatingSummary = {
+export interface RatingSummary {
   average: number | null;
   count: number;
-};
+}
 
-export type CourseProgressSummary = {
+export interface CourseProgressSummary {
   enrolledCount: number;
   totalLessons: number;
   averageProgressPercent: number | null;
   finishedCount: number;
-};
+}
 
-export type FunnelLesson = {
+export interface FunnelLesson {
   lessonId: number;
   title: string;
   reachedCount: number;
   dropFromPrevious: number;
-};
+}
 
-export type FunnelModule = {
+export interface FunnelModule {
   moduleId: number;
   title: string;
   reachedCount: number;
   dropWithin: number;
   lessons: FunnelLesson[];
-};
+}
 
-export type CourseFunnel = {
+export interface CourseFunnel {
   enrolledCount: number;
   modules: FunnelModule[];
-};
+}
 
-export type QuizPassRate = {
+export interface QuizPassRate {
   quizId: number;
   title: string;
   moduleTitle: string;
@@ -140,9 +144,9 @@ export type QuizPassRate = {
   passedCount: number;
   passRatePercent: number | null;
   averageBestScorePercent: number | null;
-};
+}
 
-export type CountryRevenueRow = {
+export interface CountryRevenueRow {
   country: string | null;
   purchaseCount: number;
   grossCents: number;
@@ -150,9 +154,9 @@ export type CountryRevenueRow = {
   sharePercent: number;
   averagePaidCents: number;
   discountPercent: number | null;
-};
+}
 
-export type CourseCountryRevenue = {
+export interface CourseCountryRevenue {
   grossCents: number;
   netCents: number;
   purchaseCount: number;
@@ -160,7 +164,7 @@ export type CourseCountryRevenue = {
   discountedNetCents: number;
   discountedSharePercent: number;
   rows: CountryRevenueRow[];
-};
+}
 
 function scopeOn(
   dateColumn: SQLiteColumn,
@@ -787,22 +791,22 @@ function getCourseRevenueByCountry(
 // still the learner's money. This panel says how much of it is.
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-export type ExposedCourse = {
+export interface ExposedCourse {
   courseId: number;
   title: string;
   grossCents: number;
   purchaseCount: number;
   daysLeft: number;
-};
+}
 
-export type RefundExposure = {
+export interface RefundExposure {
   grossCents: number;
   netCents: number;
   purchaseCount: number;
   sharePercent: number;
   closingTodayCount: number;
   courses: ExposedCourse[];
-};
+}
 
 /**
  * Every figure on the instructor analytics page.

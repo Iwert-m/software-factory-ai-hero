@@ -1,11 +1,12 @@
-import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import * as schema from "~/db/schema";
 import { and, eq } from "drizzle-orm";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+
+import * as schema from "~/db/schema";
 import { courses, enrollments } from "~/db/schema";
 import {
-  sendSafely,
   findNotificationPerson,
   type Notifications,
+  sendSafely,
 } from "~/lib/notifications.server";
 
 // docs/adr/0004 explains why an Enrollment is not tied to a Purchase.

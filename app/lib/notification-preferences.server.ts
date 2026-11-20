@@ -1,19 +1,20 @@
-import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { eq } from "drizzle-orm";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+
 import * as schema from "~/db/schema";
 import { coupons, courses, purchases, UserRole, users } from "~/db/schema";
 import {
   DEFAULT_FEED_PREFERENCES,
-  NOTIFICATION_CATEGORIES,
   type FeedPreferences,
+  NOTIFICATION_CATEGORIES,
   type NotificationCategory,
   type NotificationPreferences,
 } from "~/lib/notification-preferences";
 import {
   NOTIFICATION_PERSON_COLUMNS,
-  tolerateNotificationFailure,
   type NotificationPerson,
   type Notifications,
+  tolerateNotificationFailure,
 } from "~/lib/notifications.server";
 
 // ─── User sync and Notification preferences ───

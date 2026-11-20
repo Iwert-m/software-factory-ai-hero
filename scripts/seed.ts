@@ -1,22 +1,23 @@
 import Database from "better-sqlite3";
-import { eq, gte, isNotNull, isNull, sql, type SQL } from "drizzle-orm";
+import { eq, gte, isNotNull, isNull, type SQL, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import type { SQLiteTable } from "drizzle-orm/sqlite-core";
+import { existsSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+
 import * as schema from "../app/db/schema";
 import {
-  UserRole,
   CourseStatus,
   LessonProgressStatus,
-  RefundStatus,
   QuestionType,
+  RefundStatus,
   TeamMemberRole,
+  UserRole,
 } from "../app/db/schema";
-import { existsSync } from "fs";
-import { defaultNotifications } from "../app/lib/notifications.server";
 import { syncAllUsers } from "../app/lib/notification-preferences.server";
+import { defaultNotifications } from "../app/lib/notifications.server";
 import { markdown } from "../app/lib/text";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -233,15 +234,40 @@ async function seed() {
   // generated at the bottom of this file. Sign-up dates are spread across the
   // last twelve months, including the last few days.
   const cohortNames = [
-    "Ava Nakamura", "Noah Blackwood", "Isla Fernandes", "Ethan Okafor",
-    "Mia Lindqvist", "Lucas Moreau", "Zara Haddad", "Felix Andersen",
-    "Nina Kowalski", "Omar Rahman", "Chloe Beaumont", "Dmitri Volkov",
-    "Priya Raghavan", "Tomas Silva", "Hana Kim", "Gabriel Rossi",
-    "Amara Diallo", "Jonas Weber", "Lena Petrova", "Kwame Mensah",
-    "Sofia Ricci", "Aarav Shah", "Freya Nilsen", "Diego Castillo",
-    "Yuki Tanaka", "Rosa Delgado", "Idris Bello", "Clara Hoffmann",
-    "Mateo Alvarez", "Elif Demir", "Ruben Ortiz", "Anika Bose",
-    "Caleb Ncube", "Marta Novak",
+    "Ava Nakamura",
+    "Noah Blackwood",
+    "Isla Fernandes",
+    "Ethan Okafor",
+    "Mia Lindqvist",
+    "Lucas Moreau",
+    "Zara Haddad",
+    "Felix Andersen",
+    "Nina Kowalski",
+    "Omar Rahman",
+    "Chloe Beaumont",
+    "Dmitri Volkov",
+    "Priya Raghavan",
+    "Tomas Silva",
+    "Hana Kim",
+    "Gabriel Rossi",
+    "Amara Diallo",
+    "Jonas Weber",
+    "Lena Petrova",
+    "Kwame Mensah",
+    "Sofia Ricci",
+    "Aarav Shah",
+    "Freya Nilsen",
+    "Diego Castillo",
+    "Yuki Tanaka",
+    "Rosa Delgado",
+    "Idris Bello",
+    "Clara Hoffmann",
+    "Mateo Alvarez",
+    "Elif Demir",
+    "Ruben Ortiz",
+    "Anika Bose",
+    "Caleb Ncube",
+    "Marta Novak",
   ];
 
   const cohort = db
@@ -299,15 +325,18 @@ async function seed() {
 
   // ─── Course content ───
 
-  type LessonSpec = {
+  interface LessonSpec {
     title: string;
     duration: number;
     videoUrl?: string;
     githubRepoUrl?: string;
     content?: string;
-  };
+  }
 
-  type ModuleSpec = { title: string; lessons: LessonSpec[] };
+  interface ModuleSpec {
+    title: string;
+    lessons: LessonSpec[];
+  }
 
   // Inserts a course's modules and lessons in order and returns the lesson ids,
   // flattened module by module. Positions are 1-based.
@@ -2075,7 +2104,9 @@ This course is still in draft while the cluster examples are rewritten against t
   markComplete(students[4].id, course1LessonIds[0], 12);
   markInProgress(students[4].id, course1LessonIds[1]);
 
-  console.log(`Created ${countRows(schema.lessonProgress)} lesson progress records.`);
+  console.log(
+    `Created ${countRows(schema.lessonProgress)} lesson progress records.`
+  );
 
   // ─── Quiz Attempts ───
 
@@ -2425,13 +2456,13 @@ This course is still in draft while the cluster examples are rewritten against t
   // reach the second, the observed drop-off at each cliff is much steeper than
   // its roll.
 
-  type SellableCourse = {
+  interface SellableCourse {
     course: typeof course1;
     lessonIds: number[];
     // [bigCliffIndex, secondCliffIndex] — the lesson a stopping student last
     // completed.
     cliffs: [number, number];
-  };
+  }
 
   const sellableCourses: SellableCourse[] = [
     { course: course1, lessonIds: course1LessonIds, cliffs: [8, 13] },
@@ -2807,7 +2838,8 @@ This course is still in draft while the cluster examples are rewritten against t
     .values({
       purchaseId: novakLicence.purchase.id,
       status: RefundStatus.Open,
-      reason: "Our design team was reorganised and nobody needs these seats now.",
+      reason:
+        "Our design team was reorganised and nobody needs these seats now.",
       requestedAt: daysAgo(1),
     })
     .run();

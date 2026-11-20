@@ -74,8 +74,7 @@ describe("the OpenCode custom OpenAI-compatible model step", () => {
 
     const answer = await askChoice({ offerToRemember: false });
 
-    expect(discoveryMocks.discoverModelIds).toHaveBeenCalledOnce();
-    expect(discoveryMocks.discoverModelIds).toHaveBeenCalledWith(
+    expect(discoveryMocks.discoverModelIds).toHaveBeenCalledExactlyOnceWith(
       "http://localhost:11434"
     );
     expect(answer.choice.customModel).toBe("qwen3:8b");

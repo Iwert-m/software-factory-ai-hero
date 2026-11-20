@@ -1,13 +1,15 @@
-import { Link, redirect } from "react-router";
-import type { Route } from "./+types/courses.$slug.welcome";
-import { db } from "~/db";
-import { courses, categories, users, modules, lessons } from "~/db/schema";
 import { eq, or } from "drizzle-orm";
-import { coursePermissions } from "~/modules/permissions/course-permissions.server";
+import { MessageCircle, PartyPopper, PlayCircle } from "lucide-react";
+import { Link, redirect } from "react-router";
+import { data } from "react-router";
+
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { PartyPopper, MessageCircle, PlayCircle } from "lucide-react";
-import { data } from "react-router";
+import { db } from "~/db";
+import { categories, courses, lessons, modules, users } from "~/db/schema";
+import { coursePermissions } from "~/modules/permissions/course-permissions.server";
+
+import type { Route } from "./+types/courses.$slug.welcome";
 
 function getCourseWithDetails(id: number) {
   const course = db

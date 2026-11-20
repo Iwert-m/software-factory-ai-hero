@@ -1,17 +1,19 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { createTestDb, seedBaseData, type TestDb } from "~/test/setup";
 import { eq } from "drizzle-orm";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import * as schema from "~/db/schema";
+import { createTestDb, seedBaseData, type TestDb } from "~/test/setup";
+
 import {
   getFeedPreferences,
   setFeedPreference,
-  visibleNotificationCategories,
   syncAllUsers,
   syncUser,
+  visibleNotificationCategories,
 } from "./notification-preferences.server";
 import {
-  fakeNotifications,
   type FakeNotifications,
+  fakeNotifications,
 } from "./notifications.fake.server";
 
 let db: TestDb;

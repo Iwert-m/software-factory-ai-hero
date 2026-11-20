@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { Tabs as TabsPrimitive } from "radix-ui";
+import * as React from "react";
 
 import { cn } from "~/lib/utils";
 
@@ -90,4 +90,4 @@ function TabsContentNoShift({
   );
 }
 
-export { Tabs, TabsList, TabsTrigger, TabsContent, TabsContentNoShift };
+export { Tabs, TabsContent, TabsContentNoShift, TabsList, TabsTrigger };

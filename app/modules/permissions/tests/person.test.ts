@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { createTestDb, seedBaseData, type TestDb } from "~/test/setup";
 import { eq } from "drizzle-orm";
+import { beforeEach, describe, expect, it } from "vitest";
+
 import * as schema from "~/db/schema";
 import { UserRole } from "~/db/schema";
 import { setCurrentUserId, setDevCountry } from "~/lib/session";
+import { createTestDb, seedBaseData, type TestDb } from "~/test/setup";
+
 import { createPeople } from "../person.server";
 
 let db: TestDb;
