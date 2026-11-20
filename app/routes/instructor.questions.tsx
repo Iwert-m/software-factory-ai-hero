@@ -3,7 +3,10 @@ import { Link, data, isRouteErrorResponse, useFetcher } from "react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 import type { Route } from "./+types/instructor.questions";
-import { requireInstructorOrAdmin, requireStaff } from "~/lib/access.server";
+import {
+  requireCourseStaff,
+  requireInstructor,
+} from "~/lib/course-access.server";
 import { renderComment } from "~/lib/comment-markdown.server";
 import { createComment } from "~/lib/comments.server";
 import { defaultNotifications } from "~/lib/notifications.server";
@@ -16,6 +19,7 @@ import { AlertTriangle, CheckCircle2, ExternalLink } from "lucide-react";
 import { cn, daysSince, formatRelativeTime } from "~/lib/utils";
 import { MAX_COMMENT_LENGTH } from "~/lib/comments";
 import { parseFormData } from "~/lib/validation";
+import type { Markdown } from "~/lib/text";
 import { db } from "~/db";
 import {
   comments,
@@ -30,7 +34,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 
 type QueuedQuestion = {
   id: number;
-  body: string;
+  body: Markdown;
   createdAt: string;
   lessonId: number;
   lessonTitle: string;
@@ -131,7 +135,7 @@ export function meta() {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const { userId, isAdmin } = await requireInstructorOrAdmin(request);
+  const { userId, isAdmin } = await requireInstructor(request);
 
   // Admins span every course; instructors see only the courses they own.
   const questions = getUnansweredQuestions(isAdmin ? null : userId);
@@ -166,10 +170,10 @@ export async function action({ request }: Route.ActionArgs) {
 
   // Answering as the course's voice — so it must be the course's own
   // instructor, or an admin.
-  const { userId: authorId } = await requireStaff(request, course.courseId);
-  if (!authorId) {
-    throw data("Select a user from the DevUI panel.", { status: 401 });
-  }
+  const { userId: authorId } = await requireCourseStaff(
+    request,
+    course.courseId
+  );
 
   const created = await createComment(
     db,

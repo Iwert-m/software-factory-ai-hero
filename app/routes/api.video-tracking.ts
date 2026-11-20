@@ -1,35 +1,38 @@
 import { data } from "react-router";
 import { z } from "zod";
 import type { Route } from "./+types/api.video-tracking";
-import { getCurrentUserId } from "~/lib/session";
+import { requireLessonAccess } from "~/lib/course-access.server";
 import { parseJsonBody } from "~/lib/validation";
 import { db } from "~/db";
 import { videoWatchEvents } from "~/db/schema";
 
 const videoTrackingSchema = z.object({
+  // Trusting the client's course id is safe: a lesson that isn't in that
+  // course is refused as not found.
+  courseId: z.number(),
   lessonId: z.number(),
   eventType: z.string(),
   positionSeconds: z.number(),
 });
 
 export async function action({ request }: Route.ActionArgs) {
-  const currentUserId = await getCurrentUserId(request);
-  if (!currentUserId) {
-    throw data("Unauthorized", { status: 401 });
-  }
-
   const parsed = await parseJsonBody(request, videoTrackingSchema);
 
   if (!parsed.success) {
     throw data("Invalid parameters", { status: 400 });
   }
 
-  const { lessonId, eventType, positionSeconds } = parsed.data;
+  const { courseId, lessonId, eventType, positionSeconds } = parsed.data;
+
+  // Watched time feeds the Watch Limit, so only Course Access to this lesson
+  // may write it, and only an Enrollment is tracked.
+  const access = await requireLessonAccess(request, { courseId, lessonId });
+  if (!access.tracksProgress) return { success: true };
 
   db
     .insert(videoWatchEvents)
     .values({
-      userId: currentUserId,
+      userId: access.userId,
       lessonId,
       eventType,
       positionSeconds,

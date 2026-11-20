@@ -26,7 +26,11 @@ _Avoid_: Admin (on its own)
 
 **Enrollment**:
 A Student's place on a course, which lets them take it. A Student has at most one Enrollment per course, whether it came from an Individual Purchase or a Claimed Seat.
-_Avoid_: Place on a course, Access
+_Avoid_: Place on a course, Access (which means Course Access)
+
+**Course Access**:
+Whether a person may watch a course's Lessons right now. A course's Instructor and every Platform Admin always have it. A Student has it when they have an Enrollment and no Country Lock stops them. So a Student can have an Enrollment without Course Access, and an Instructor has Course Access without an Enrollment.
+_Avoid_: Enrollment (for this), Permission
 
 **Lapsed**:
 A Student who has lost their Enrollment on a course but still has progress on it.
@@ -67,6 +71,14 @@ A Seat no Student has claimed yet.
 
 **Claimed Seat**:
 A Seat a Student has claimed. It belongs to that Student, so a Team Licence with any Claimed Seat can't be refunded.
+
+**Purchasing-Power Price**:
+A lower price for a course, set for the country the buyer is in when they buy. When the country is unknown, the buyer pays full price.
+_Avoid_: PPP (in prose), Regional discount
+
+**Country Lock**:
+The rule that a Purchase made at a Purchasing-Power Price only gives Course Access from the country it was bought in. A course's Instructor and Platform Admins are never locked.
+_Avoid_: Geo-block, Region lock
 
 ### Refunds
 

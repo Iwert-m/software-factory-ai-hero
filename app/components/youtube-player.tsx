@@ -9,6 +9,7 @@ declare global {
 
 type YouTubePlayerProps = {
   videoUrl: string;
+  courseId: number;
   lessonId: number;
   title: string;
   startPosition: number;
@@ -64,6 +65,7 @@ function loadYouTubeAPI(): Promise<void> {
 
 export function YouTubePlayer({
   videoUrl,
+  courseId,
   lessonId,
   title,
   startPosition,
@@ -89,12 +91,17 @@ export function YouTubePlayer({
       fetch("/api/video-tracking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lessonId, eventType, positionSeconds }),
+        body: JSON.stringify({
+          courseId,
+          lessonId,
+          eventType,
+          positionSeconds,
+        }),
       }).catch(() => {
         // Silently fail — tracking is best-effort
       });
     },
-    [lessonId, trackingEnabled]
+    [courseId, lessonId, trackingEnabled]
   );
 
   const updateProgress = useCallback(() => {
