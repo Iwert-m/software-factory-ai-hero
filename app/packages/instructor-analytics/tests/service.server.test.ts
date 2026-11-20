@@ -3,12 +3,12 @@ import { createTestDb, seedBaseData, type TestDb } from "~/test/setup";
 import * as schema from "~/db/schema";
 import { CourseStatus, UserRole } from "~/db/schema";
 import { markdown } from "~/lib/text";
-import type { AnalyticsRange } from "~/lib/analytics";
+import type { AnalyticsRange } from "../config";
 import {
   getInstructorAnalytics,
   type AnalyticsQuery,
   type AnalyticsViewer,
-} from "./analytics.server";
+} from "../service.server";
 
 // Local noon, like the refund tests: the refund window is counted in local
 // calendar days.
@@ -169,9 +169,10 @@ describe("getInstructorAnalytics", () => {
     });
 
     it("counts only purchases since the range began, measured from now", () => {
-      expect(analytics(asInstructor(), { range: "7d" }).summary).toMatchObject(
-        { grossCents: 100, purchaseCount: 1 }
-      );
+      expect(analytics(asInstructor(), { range: "7d" }).summary).toMatchObject({
+        grossCents: 100,
+        purchaseCount: 1,
+      });
       expect(analytics(asInstructor(), { range: "30d" }).summary).toMatchObject(
         { grossCents: 300, purchaseCount: 2 }
       );
@@ -185,9 +186,7 @@ describe("getInstructorAnalytics", () => {
 
       expect(series.granularity).toBe("day");
       expect(series.points).toHaveLength(8);
-      expect(series.points.at(-1)?.bucket).toBe(
-        NOW.toISOString().slice(0, 10)
-      );
+      expect(series.points.at(-1)?.bucket).toBe(NOW.toISOString().slice(0, 10));
       expect(series.points.reduce((t, p) => t + p.grossCents, 0)).toBe(100);
     });
 

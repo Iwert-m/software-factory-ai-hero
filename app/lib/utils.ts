@@ -53,7 +53,7 @@ export function formatDuration(
   minutes: number,
   showHours: boolean,
   showSeconds: boolean,
-  padZeros: boolean
+  padZeros: boolean,
 ): string {
   if (minutes <= 0) return padZeros ? "00m" : "0m";
 

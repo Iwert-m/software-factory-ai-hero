@@ -12,14 +12,14 @@ import {
   type QuizPassRate,
   type RefundExposure,
   type RevenueSeries,
-} from "~/lib/analytics.server";
+} from "~/packages/instructor-analytics/service.server";
 import {
   ANALYTICS_RANGES,
   PLATFORM_FEE_PERCENT,
   formatBucket,
   formatMoney,
   parseAnalyticsRange,
-} from "~/lib/analytics";
+} from "~/packages/instructor-analytics/config";
 import { REFUND_WINDOW_DAYS } from "~/lib/refund-rules";
 import { countryName } from "~/lib/ppp";
 import { Button } from "~/components/ui/button";
