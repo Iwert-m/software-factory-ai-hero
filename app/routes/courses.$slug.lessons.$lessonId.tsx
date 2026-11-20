@@ -2,8 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import { Link, useFetcher, useNavigate } from "react-router";
 import { toast } from "sonner";
 import type { Route } from "./+types/courses.$slug.lessons.$lessonId";
-import { getCurrentUserId } from "~/lib/session";
-import { getAccess, requireContentAccess } from "~/lib/access.server";
+import {
+  getLessonAccess,
+  requireLessonAccess,
+} from "~/lib/course-access.server";
+import type { LessonAccess } from "~/packages/course-access/service.server";
 import { renderComment } from "~/lib/comment-markdown.server";
 import { markdown, type Markdown } from "~/lib/text";
 import {
@@ -53,6 +56,7 @@ import {
   BookmarkCheck,
   Github,
   HelpCircle,
+  Lock,
   NotebookPen,
   MapPin,
   PlayCircle,
@@ -66,7 +70,7 @@ import { renderMarkdown } from "~/lib/markdown.server";
 import { YouTubePlayer } from "~/components/youtube-player";
 import { data, isRouteErrorResponse } from "react-router";
 import { z } from "zod";
-import { COUNTRIES } from "~/lib/ppp";
+import { countryName } from "~/lib/ppp";
 import { parseFormData, parseParams } from "~/lib/validation";
 
 const lessonParamsSchema = z.object({
@@ -191,18 +195,6 @@ function getLessonById(id: number) {
 
 function getModuleById(id: number) {
   return db.select().from(modules).where(eq(modules.id, id)).get();
-}
-
-/**
- * Throws 404 unless the lesson is in the course, so content access to one
- * course can't reach a lesson in another by posting its id to this route.
- */
-function requireLessonInCourse(lessonId: number, courseId: number) {
-  const lesson = getLessonById(lessonId);
-  const mod = lesson ? getModuleById(lesson.moduleId) : undefined;
-  if (!mod || mod.courseId !== courseId) {
-    throw data("Lesson not found in this course", { status: 404 });
-  }
 }
 
 function getUserById(id: number) {
@@ -636,6 +628,27 @@ function flattenCourseLessons(course: {
   return flat;
 }
 
+/** Why the paywall is up: the refusal, without the viewer's user id. */
+type Paywall =
+  | { reason: "signed-out" | "no-enrollment" }
+  | { reason: "country-lock"; purchaseCountry: string; currentCountry: string };
+
+function toPaywall(
+  refusal: Exclude<LessonAccess, { ok: true } | { reason: "not-found" }>
+): Paywall {
+  switch (refusal.reason) {
+    case "country-lock":
+      return {
+        reason: refusal.reason,
+        purchaseCountry: refusal.purchaseCountry,
+        currentCountry: refusal.currentCountry,
+      };
+    case "signed-out":
+    case "no-enrollment":
+      return { reason: refusal.reason };
+  }
+}
+
 export async function loader({ params, request }: Route.LoaderArgs) {
   const slug = params.slug;
   const lessonId = Number(params.lessonId);
@@ -654,82 +667,93 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     throw data("Course not found", { status: 404 });
   }
 
+  // Throws 404 when the lesson isn't in this course, whoever asks. Any other
+  // refusal comes back as the paywall reason.
+  const access = await getLessonAccess(request, {
+    courseId: course.id,
+    lessonId,
+  });
+
   const lesson = getLessonById(lessonId);
-  if (!lesson) {
+  const mod = lesson ? getModuleById(lesson.moduleId) : undefined;
+  if (!lesson || !mod) {
     throw data("Lesson not found", { status: 404 });
   }
 
-  const mod = getModuleById(lesson.moduleId);
-  if (!mod) {
-    throw data("Module not found", { status: 404 });
+  const outline = {
+    course: {
+      id: courseWithDetails.id,
+      title: courseWithDetails.title,
+      slug: courseWithDetails.slug,
+    },
+    curriculum: courseWithDetails.modules.map((m) => ({
+      id: m.id,
+      title: m.title,
+      lessons: m.lessons.map((l) => ({
+        id: l.id,
+        title: l.title,
+      })),
+    })),
+    module: {
+      id: mod.id,
+      title: mod.title,
+    },
+  };
+
+  // Without Course Access: the paywall preview only. The lesson body, video,
+  // repo link and quiz are never sent.
+  if (!access.ok) {
+    return {
+      ...outline,
+      hasAccess: false as const,
+      lesson: { id: lesson.id, title: lesson.title },
+      paywall: toPaywall(access),
+    };
   }
 
-  // Verify lesson belongs to this course
-  if (mod.courseId !== course.id) {
-    throw data("Lesson not found in this course", { status: 404 });
-  }
-
-  const access = await getAccess(request, course.id);
   const currentUserId = access.userId;
-  const enrolled = access.enrolled;
+  // Only an Enrollment is tracked: staff can watch without leaving progress.
+  const enrolled = access.tracksProgress;
   let lessonStatus: string | null = null;
   let lastWatchPosition = 0;
   let watchProgress = 0;
   let lessonProgressMap: Record<number, string> = {};
 
-  if (currentUserId) {
-    if (enrolled) {
-      // Mark lesson as in-progress when viewed
-      markLessonInProgress(currentUserId, lessonId);
-      const progress = getLessonProgress(currentUserId, lessonId);
-      lessonStatus = progress?.status ?? null;
+  if (enrolled) {
+    // Mark lesson as in-progress when viewed
+    markLessonInProgress(currentUserId, lessonId);
+    const progress = getLessonProgress(currentUserId, lessonId);
+    lessonStatus = progress?.status ?? null;
 
-      // Get progress for all lessons in course (for curriculum sidebar)
-      const progressRecords = getLessonProgressForCourse(
-        currentUserId,
-        course.id
-      );
-      for (const record of progressRecords) {
-        lessonProgressMap[record.lessonId] = record.status;
-      }
+    // Get progress for all lessons in course (for curriculum sidebar)
+    const progressRecords = getLessonProgressForCourse(
+      currentUserId,
+      course.id
+    );
+    for (const record of progressRecords) {
+      lessonProgressMap[record.lessonId] = record.status;
+    }
 
-      // Get video watch state for resume and progress display
-      if (lesson.videoUrl) {
-        lastWatchPosition = getLastWatchPosition(currentUserId, lessonId);
-        const videoDurationSeconds = (lesson.durationMinutes ?? 0) * 60;
-        if (videoDurationSeconds > 0) {
-          watchProgress = calculateWatchProgress(
-            currentUserId,
-            lessonId,
-            videoDurationSeconds
-          );
-        }
+    // Get video watch state for resume and progress display
+    if (lesson.videoUrl) {
+      lastWatchPosition = getLastWatchPosition(currentUserId, lessonId);
+      const videoDurationSeconds = (lesson.durationMinutes ?? 0) * 60;
+      if (videoDurationSeconds > 0) {
+        watchProgress = calculateWatchProgress(
+          currentUserId,
+          lessonId,
+          videoDurationSeconds
+        );
       }
     }
   }
 
-  // PPP Access Guard — resolved by getAccess, which treats a blocked user as
-  // having no access to the course's content at all.
-  const { pppBlocked, pppBlockedCountry, pppPurchaseCountry, canViewContent } =
-    access;
-
-  // Comments are confidential to the course: only people who can read the
-  // lesson can read the discussion on it.
+  // Comments, the Bookmark and the Note sit behind Course Access like the
+  // lesson itself.
   const instructor = getUserById(course.instructorId);
-  const comments = canViewContent
-    ? await renderThread(getLessonThread(lessonId))
-    : [];
-
-  // The Student's own Bookmark and Note on this lesson, behind the same
-  // content-access bar as the discussion. A signed-out visitor gets neither.
-  const bookmarked =
-    canViewContent && currentUserId
-      ? isBookmarked(db, currentUserId, lessonId)
-      : false;
-  const note =
-    canViewContent && currentUserId
-      ? getNote(db, currentUserId, lessonId)
-      : undefined;
+  const comments = await renderThread(getLessonThread(lessonId));
+  const bookmarked = isBookmarked(db, currentUserId, lessonId);
+  const note = getNote(db, currentUserId, lessonId);
 
   // Render lesson content from Markdown to HTML server-side
   const contentHtml = lesson.content
@@ -780,32 +804,15 @@ export async function loader({ params, request }: Route.LoaderArgs) {
       };
     }
 
-    if (currentUserId) {
-      const best = getBestAttempt(currentUserId, quizRecord.id);
-      if (best) {
-        bestAttempt = { score: best.score, passed: best.passed };
-      }
+    const best = getBestAttempt(currentUserId, quizRecord.id);
+    if (best) {
+      bestAttempt = { score: best.score, passed: best.passed };
     }
   }
 
   return {
-    course: {
-      id: courseWithDetails.id,
-      title: courseWithDetails.title,
-      slug: courseWithDetails.slug,
-    },
-    curriculum: courseWithDetails.modules.map((m) => ({
-      id: m.id,
-      title: m.title,
-      lessons: m.lessons.map((l) => ({
-        id: l.id,
-        title: l.title,
-      })),
-    })),
-    module: {
-      id: mod.id,
-      title: mod.title,
-    },
+    ...outline,
+    hasAccess: true as const,
     lesson,
     contentHtml,
     lessonStatus,
@@ -818,12 +825,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     lastWatchPosition,
     watchProgress,
     lessonProgressMap,
-    pppBlocked,
-    pppBlockedCountry,
-    pppPurchaseCountry,
     comments,
-    canViewContent,
-    canModerate: access.isStaff,
+    canModerate: access.canModerate,
     instructorName: instructor?.name ?? "your instructor",
     bookmarked,
     note: note ? { body: note.body, updatedAt: note.updatedAt } : null,
@@ -838,23 +841,22 @@ export async function action({ params, request }: Route.ActionArgs) {
     throw data("Course not found", { status: 404 });
   }
 
-  const currentUserId = await getCurrentUserId(request);
-  if (!currentUserId) {
-    throw data("You must be logged in", { status: 401 });
-  }
+  // One guard for every intent — loader guards don't protect actions. It
+  // also refuses a lesson that isn't in this course.
+  const access = await requireLessonAccess(request, {
+    courseId: course.id,
+    lessonId,
+  });
+  const currentUserId = access.userId;
 
   const formData = await request.formData();
   const intent = formData.get("intent");
 
-  // Comment intents re-check access here rather than relying on the loader —
-  // loader guards don't protect actions.
   if (
     intent === "create-comment" ||
     intent === "edit-comment" ||
     intent === "delete-comment"
   ) {
-    const access = await requireContentAccess(request, course.id);
-
     try {
       if (intent === "create-comment") {
         const parsed = parseFormData(formData, createCommentSchema);
@@ -908,7 +910,7 @@ export async function action({ params, request }: Route.ActionArgs) {
         db,
         parsed.data.commentId,
         currentUserId,
-        access.isStaff,
+        access.canModerate,
         new Date(),
         await defaultNotifications()
       );
@@ -924,12 +926,7 @@ export async function action({ params, request }: Route.ActionArgs) {
     }
   }
 
-  // Bookmark and Note intents re-check access here, like the comment intents
-  // above — loader guards don't protect actions.
   if (intent === "toggle-bookmark" || intent === "save-note") {
-    await requireContentAccess(request, course.id);
-    requireLessonInCourse(lessonId, course.id);
-
     if (intent === "toggle-bookmark") {
       const bookmarked = toggleBookmark(db, currentUserId, lessonId, new Date());
       return { ok: true, bookmarked };
@@ -1013,6 +1010,98 @@ function useAutoplay() {
 }
 
 export default function LessonViewer({ loaderData }: Route.ComponentProps) {
+  if (!loaderData.hasAccess) {
+    return <LessonPaywall {...loaderData} />;
+  }
+  return <Lesson {...loaderData} />;
+}
+
+type LoaderData = Route.ComponentProps["loaderData"];
+type PaywallData = Extract<LoaderData, { hasAccess: false }>;
+type LessonData = Extract<LoaderData, { hasAccess: true }>;
+
+function LessonPaywall({ course, curriculum, lesson, paywall }: PaywallData) {
+  return (
+    <div className="flex">
+      <CurriculumSidebar
+        course={course}
+        curriculum={curriculum}
+        currentLessonId={lesson.id}
+        lessonProgressMap={{}}
+        enrolled={false}
+      />
+
+      <div className="flex min-h-[60vh] flex-1 items-center justify-center p-6">
+        <div className="max-w-md text-center">
+          <p className="mb-1 text-sm text-muted-foreground">{course.title}</p>
+          <h1 className="mb-6 text-2xl font-bold">{lesson.title}</h1>
+          <PaywallReason paywall={paywall} courseSlug={course.slug} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PaywallReason({
+  paywall,
+  courseSlug,
+}: {
+  paywall: Paywall;
+  courseSlug: string;
+}) {
+  if (paywall.reason === "country-lock") {
+    return (
+      <>
+        <ShieldAlert className="mx-auto mb-4 size-16 text-amber-500" />
+        <h2 className="mb-3 text-xl font-semibold">Access Restricted</h2>
+        <p className="mb-4 text-muted-foreground">
+          You bought this course at a Purchasing-Power Price while in{" "}
+          <strong>{countryName(paywall.purchaseCountry)}</strong>, but you're
+          currently in <strong>{countryName(paywall.currentCountry)}</strong>.
+        </p>
+        <p className="mb-6 text-sm text-muted-foreground">
+          Courses bought at a Purchasing-Power Price can only be watched from
+          the country they were bought in. This helps keep courses affordable
+          for students in lower-income regions.
+        </p>
+        <Link to={`/courses/${courseSlug}`}>
+          <Button variant="outline">
+            <MapPin className="mr-2 size-4" />
+            Back to Course
+          </Button>
+        </Link>
+      </>
+    );
+  }
+
+  if (paywall.reason === "signed-out") {
+    return (
+      <>
+        <Lock className="mx-auto mb-4 size-12 text-muted-foreground" />
+        <p className="mb-6 text-muted-foreground">
+          Sign in to watch this lesson. Select a user from the DevUI panel.
+        </p>
+        <Link to={`/courses/${courseSlug}`}>
+          <Button variant="outline">View Course</Button>
+        </Link>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Lock className="mx-auto mb-4 size-12 text-muted-foreground" />
+      <p className="mb-6 text-muted-foreground">
+        You're not enrolled in this course. Buy it to watch this lesson.
+      </p>
+      <Link to={`/courses/${courseSlug}`}>
+        <Button>Buy this course</Button>
+      </Link>
+    </>
+  );
+}
+
+function Lesson(loaderData: LessonData) {
   const {
     course,
     curriculum,
@@ -1029,11 +1118,7 @@ export default function LessonViewer({ loaderData }: Route.ComponentProps) {
     lastWatchPosition,
     watchProgress,
     lessonProgressMap,
-    pppBlocked,
-    pppBlockedCountry,
-    pppPurchaseCountry,
     comments,
-    canViewContent,
     canModerate,
     instructorName,
     bookmarked,
@@ -1062,44 +1147,6 @@ export default function LessonViewer({ loaderData }: Route.ComponentProps) {
 
   const quizResult = quizFetcher.data?.quizResult ?? null;
   const isSubmittingQuiz = quizFetcher.state !== "idle";
-
-  if (pppBlocked) {
-    const purchaseCountryName = pppPurchaseCountry
-      ? (COUNTRIES.find((c) => c.code === pppPurchaseCountry)?.name ??
-        pppPurchaseCountry)
-      : "your original country";
-    const currentCountryName = pppBlockedCountry
-      ? (COUNTRIES.find((c) => c.code === pppBlockedCountry)?.name ??
-        pppBlockedCountry)
-      : "a different country";
-
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center p-6">
-        <div className="max-w-md text-center">
-          <ShieldAlert className="mx-auto mb-4 size-16 text-amber-500" />
-          <h1 className="mb-3 text-2xl font-bold">Access Restricted</h1>
-          <p className="mb-4 text-muted-foreground">
-            You purchased this course with a Purchasing Power Parity discount
-            while in <strong>{purchaseCountryName}</strong>, but you're
-            currently accessing from <strong>{currentCountryName}</strong>.
-          </p>
-          <p className="mb-6 text-sm text-muted-foreground">
-            PPP-discounted courses can only be accessed from the country where
-            the purchase was made. This helps keep courses affordable for
-            students in lower-income regions.
-          </p>
-          <div className="flex items-center justify-center gap-3">
-            <Link to={`/courses/${course.slug}`}>
-              <Button variant="outline">
-                <MapPin className="mr-2 size-4" />
-                Back to Course
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex">
@@ -1140,9 +1187,7 @@ export default function LessonViewer({ loaderData }: Route.ComponentProps) {
           {/* Lesson Title */}
           <div className="mb-2 flex items-start justify-between gap-3">
             <h1 className="text-3xl font-bold">{lesson.title}</h1>
-            {canViewContent && currentUserId && (
-              <BookmarkToggle bookmarked={bookmarked} />
-            )}
+            <BookmarkToggle bookmarked={bookmarked} />
           </div>
           <div className="mb-6 flex items-center gap-3">
             {lesson.durationMinutes && (
@@ -1169,19 +1214,20 @@ export default function LessonViewer({ loaderData }: Route.ComponentProps) {
           {lesson.videoUrl && (
             <YouTubePlayer
               videoUrl={lesson.videoUrl}
+              courseId={course.id}
               lessonId={lesson.id}
               title={lesson.title}
               startPosition={lastWatchPosition}
               durationMinutes={lesson.durationMinutes}
               watchProgress={watchProgress}
-              trackingEnabled={enrolled && !!currentUserId}
+              trackingEnabled={enrolled}
               autoplay={autoplay}
               onToggleAutoplay={toggleAutoplay}
             />
           )}
 
           {/* Note — under the video, so the Student can write while they watch */}
-          {canViewContent && currentUserId && <LessonNote note={note} />}
+          <LessonNote note={note} />
 
           {/* Lesson Content */}
           {contentHtml && (
@@ -1200,7 +1246,7 @@ export default function LessonViewer({ loaderData }: Route.ComponentProps) {
           )}
 
           {/* Quiz Section */}
-          {quiz && enrolled && currentUserId && (
+          {quiz && enrolled && (
             <QuizSection
               quiz={quiz}
               bestAttempt={bestAttempt}
@@ -1211,7 +1257,7 @@ export default function LessonViewer({ loaderData }: Route.ComponentProps) {
           )}
 
           {/* Mark Complete / Up Next */}
-          {enrolled && currentUserId && (
+          {enrolled && (
             <div className="mb-8">
               {isCompleted ? (
                 <div className="flex items-center gap-3">
@@ -1257,15 +1303,13 @@ export default function LessonViewer({ loaderData }: Route.ComponentProps) {
           )}
 
           {/* Questions & Discussion — confidential to people with access */}
-          {canViewContent && (
-            <CommentThread
-              comments={comments}
-              currentUserId={currentUserId}
-              canModerate={canModerate}
-              canPost
-              instructorName={instructorName}
-            />
-          )}
+          <CommentThread
+            comments={comments}
+            currentUserId={currentUserId}
+            canModerate={canModerate}
+            canPost
+            instructorName={instructorName}
+          />
 
           {/* Prev/Next Navigation */}
           <div className="flex items-center justify-between border-t pt-6">
@@ -1342,7 +1386,7 @@ function BookmarkToggle({ bookmarked }: { bookmarked: boolean }) {
 function LessonNote({
   note,
 }: {
-  note: Route.ComponentProps["loaderData"]["note"];
+  note: LessonData["note"];
 }) {
   const fetcher = useFetcher<{ ok: boolean; error?: string }>();
   const isSaving = fetcher.state !== "idle";
