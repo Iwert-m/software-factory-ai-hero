@@ -23,11 +23,12 @@
     "db:migrate": "drizzle-kit migrate",
     "loc": "git ls-files | grep -vE '(lock|.db|_snapshot.json)' | xargs wc -l",
     "lint:boundaries": "depcruise app",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run lint:boundaries && npm run test",
+    "check": "npm run format:check && npm run lint && npm run lint:tokens && npm run typecheck && npm run lint:boundaries && npm run test",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "lint:tokens": "tsx scripts/check-file-tokens.ts"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
@@ -78,6 +79,7 @@
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "eslint-plugin-sonarjs": "^4.2.2",
     "globals": "^17.14.0",
+    "gpt-tokenizer": "^4.1.2",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.1",
     "prettier": "^3.8.1",
