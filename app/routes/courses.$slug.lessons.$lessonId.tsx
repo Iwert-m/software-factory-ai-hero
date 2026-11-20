@@ -947,6 +947,17 @@ export async function action({ params, request }: Route.ActionArgs) {
     return { ok: true };
   }
 
+  // Progress and quiz attempts belong to an Enrollment, like Watched time:
+  // an Instructor or Platform Admin can watch without leaving any.
+  if (
+    (intent === "mark-complete" || intent === "submit-quiz") &&
+    !access.tracksProgress
+  ) {
+    throw data("Only enrolled Students record progress on a lesson.", {
+      status: 403,
+    });
+  }
+
   if (intent === "mark-complete") {
     markLessonComplete(currentUserId, lessonId);
     return { success: true };
