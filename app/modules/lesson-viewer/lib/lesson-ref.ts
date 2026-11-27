@@ -2,7 +2,10 @@ import type {
   CourseRef,
   createCoursePermissions,
 } from "~/modules/permissions/course-permissions.server";
-import type { Db } from "~/lib/notes.server";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import type * as schema from "~/db/schema";
+
+export type Db = BetterSQLite3Database<typeof schema>;
 
 export type LessonParams = { slug: string; lessonId: string };
 
@@ -14,8 +17,8 @@ export type LessonViewerDeps = {
 };
 
 /**
- * The course named by this route's slug, through this lesson. A lesson in
- * another course, or a malformed lesson id, counts as not found.
+ * The course this lesson belongs to, as `coursePermissions` looks it up: it
+ * treats a lesson in another course, or a malformed id, as not found.
  */
 export function lessonRef(params: LessonParams): CourseRef {
   return { slug: params.slug, lessonId: params.lessonId };

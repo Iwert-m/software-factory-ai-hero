@@ -25,10 +25,12 @@ import { useAutoplay } from "~/components/use-autoplay";
 import { LessonNote } from "~/components/lesson-note";
 import { CommentThread } from "~/components/comment-thread";
 import { YouTubePlayer } from "~/components/youtube-player";
-import { lessonViewer } from "~/modules/lesson-viewer/index.server";
+import {
+  lessonViewer,
+  type FullLessonPage,
+} from "~/modules/lesson-viewer/index.server";
 import { LessonProgressStatus } from "~/db/schema";
 import type { Route } from "./+types/courses.$slug.lessons.$lessonId";
-import type { FullLessonPage } from "~/modules/lesson-viewer/index.server";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   const title = loaderData?.lesson?.title ?? "Lesson";
@@ -88,7 +90,6 @@ function FullLesson({ data }: { data: FullLessonPage }) {
   const isCompleted =
     lessonStatus === LessonProgressStatus.Completed || justCompleted;
 
-  // Navigate to next lesson after marking complete
   useEffect(() => {
     if (justCompleted && nextLesson) {
       navigate(`/courses/${course.slug}/lessons/${nextLesson.id}`);
@@ -100,7 +101,6 @@ function FullLesson({ data }: { data: FullLessonPage }) {
 
   return (
     <div className="flex">
-      {/* Curriculum Sidebar */}
       <CurriculumSidebar
         course={course}
         curriculum={curriculum}
@@ -117,7 +117,6 @@ function FullLesson({ data }: { data: FullLessonPage }) {
         />
 
         <div className="mx-auto max-w-4xl">
-          {/* Lesson Title */}
           <div className="mb-2 flex items-start justify-between gap-3">
             <h1 className="text-3xl font-bold">{lesson.title}</h1>
             {currentUserId && <BookmarkToggle bookmarked={bookmarked} />}
@@ -143,7 +142,6 @@ function FullLesson({ data }: { data: FullLessonPage }) {
             )}
           </div>
 
-          {/* YouTube Video */}
           {lesson.videoUrl && (
             <YouTubePlayer
               videoUrl={lesson.videoUrl}
@@ -158,7 +156,6 @@ function FullLesson({ data }: { data: FullLessonPage }) {
             />
           )}
 
-          {/* Lesson Content */}
           {contentHtml && (
             <div
               className="prose prose-neutral dark:prose-invert mb-8 max-w-none"
@@ -175,7 +172,6 @@ function FullLesson({ data }: { data: FullLessonPage }) {
             </Card>
           )}
 
-          {/* Quiz Section */}
           {quiz && enrolled && currentUserId && (
             <QuizSection
               quiz={quiz}
@@ -189,7 +185,6 @@ function FullLesson({ data }: { data: FullLessonPage }) {
           {/* Note — after the lesson, so the Student reads before they write */}
           {currentUserId && <LessonNote note={note} />}
 
-          {/* Mark Complete / Up Next */}
           {enrolled && currentUserId && (
             <div className="mb-8">
               {isCompleted ? (
@@ -244,7 +239,6 @@ function FullLesson({ data }: { data: FullLessonPage }) {
             instructorName={instructorName}
           />
 
-          {/* Prev/Next Navigation */}
           <div className="flex items-center justify-between border-t pt-6">
             {prevLesson ? (
               <Link

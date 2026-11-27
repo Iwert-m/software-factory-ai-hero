@@ -1,9 +1,8 @@
 import { db } from "~/db";
-import type { Db } from "~/lib/notes.server";
 import { coursePermissions } from "~/modules/permissions/course-permissions.server";
 import { actOnLesson } from "./lib/act";
 import { loadLesson } from "./lib/load";
-import type { CoursePermissions, LessonParams } from "./lib/lesson-ref";
+import type { CoursePermissions, Db, LessonParams } from "./lib/lesson-ref";
 
 export type { LessonParams } from "./lib/lesson-ref";
 

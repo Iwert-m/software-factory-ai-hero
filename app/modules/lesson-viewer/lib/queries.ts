@@ -11,7 +11,7 @@ import {
   LessonProgressStatus,
   UserRole,
 } from "~/db/schema";
-import type { Db } from "~/lib/notes.server";
+import type { Db } from "./lesson-ref";
 import type { RenderedComment } from "~/components/comment-thread";
 import { renderComment } from "~/lib/comment-markdown.server";
 import { markdown, type Markdown } from "~/lib/text";

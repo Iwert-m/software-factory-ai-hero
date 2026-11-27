@@ -6,7 +6,7 @@ import {
   quizAttempts,
   quizAnswers,
 } from "~/db/schema";
-import type { Db } from "~/lib/notes.server";
+import type { Db } from "./lesson-ref";
 
 type QuestionResult = {
   questionId: number;
